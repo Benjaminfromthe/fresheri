@@ -1,0 +1,563 @@
+// ============================================================
+// Fresheri – Agricultural E-Commerce Platform
+// PostgreSQL schema via Prisma ORM
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooler — used at runtime
+  directUrl = env("DIRECT_URL")     // direct — used by prisma migrate
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  FARMER
+  COOPERATIVE
+  COMMERCIAL_BUYER   // Hotels, Restaurants
+  HOUSEHOLD_BUYER
+  LOGISTICS_PARTNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum QuantityUnit {
+  KG
+  TON
+}
+
+enum DeliveryOption {
+  SELF_PICKUP
+  DELIVERED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PARTIALLY_SOLD
+  SOLD_OUT
+  EXPIRED
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  MOBILE_MONEY
+  BANK_TRANSFER
+  CASH_ON_DELIVERY
+  USSD_PAYMENT
+}
+
+enum DeliveryStatus {
+  NOT_ASSIGNED
+  ASSIGNED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+}
+
+enum USSDSessionStatus {
+  ACTIVE
+  COMPLETED
+  TIMED_OUT
+  FAILED
+}
+
+enum USSDFlowType {
+  REGISTRATION
+  HARVEST_PUBLISH
+  ORDER_QUERY
+  ACCOUNT_MENU
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id                String     @id @default(uuid())
+  phone             String     @unique               // Primary identifier (USSD-friendly)
+  email             String?    @unique
+  passwordHash      String?
+  firstName         String
+  lastName          String
+  role              UserRole
+  status            UserStatus @default(PENDING_VERIFICATION)
+  isVerified        Boolean    @default(false)
+  preferredLanguage String     @default("en")        // e.g. "sw", "fr", "en"
+  profileImageUrl   String?
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  lastLoginAt       DateTime?
+
+  // Role-specific profile extensions (one-to-one)
+  farmerProfile     FarmerProfile?
+  cooperativeProfile CooperativeProfile?
+  logisticsProfile  LogisticsProfile?
+  buyerProfile      BuyerProfile?
+
+  // Relations
+  listings          ProduceListing[]
+  orders            Order[]          @relation("BuyerOrders")
+  deliveries        Delivery[]       @relation("LogisticsPartnerDeliveries")
+  ussdSessions      USSDSession[]
+  refreshTokens     RefreshToken[]
+  auditLogs         AuditLog[]
+
+  @@index([phone])
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+// ROLE-SPECIFIC PROFILES
+// ─────────────────────────────────────────────
+
+model FarmerProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  farmName        String?
+  farmSizeHectares Decimal? @db.Decimal(10, 2)
+  farmLocation    String                        // Human-readable location
+  latitude        Decimal? @db.Decimal(9, 6)
+  longitude       Decimal? @db.Decimal(9, 6)
+  nationalIdNumber String?  @unique
+  cooperativeId   String?                       // FK set below via CooperativeProfile
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([cooperativeId])
+}
+
+model CooperativeProfile {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cooperativeName      String
+  registrationNumber   String   @unique
+  districtOfOperation  String
+  memberCount          Int      @default(0)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model BuyerProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  businessName      String?                      // For COMMERCIAL_BUYER
+  businessRegNumber String?
+  deliveryAddress   String?
+  preferredCategories String[]                   // e.g. ["VEGETABLES", "GRAINS"]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model LogisticsProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName        String?
+  vehicleType        String?                     // e.g. "3-ton truck", "motorbike"
+  vehicleRegNumber   String?
+  operatingRegions   String[]
+  isAvailable        Boolean  @default(true)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// PRODUCE CATEGORIES
+// ─────────────────────────────────────────────
+
+model ProduceCategory {
+  id          String           @id @default(uuid())
+  name        String           @unique              // e.g. "Vegetables", "Grains", "Fruits"
+  slug        String           @unique
+  description String?
+  imageUrl    String?
+  parentId    String?
+  parent      ProduceCategory? @relation("SubCategories", fields: [parentId], references: [id])
+  children    ProduceCategory[] @relation("SubCategories")
+
+  listings    ProduceListing[]
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+// ─────────────────────────────────────────────
+// PRODUCE LISTINGS
+// ─────────────────────────────────────────────
+
+model ProduceListing {
+  id                  String         @id @default(uuid())
+  sellerId            String
+  seller              User           @relation(fields: [sellerId], references: [id])
+  categoryId          String
+  category            ProduceCategory @relation(fields: [categoryId], references: [id])
+
+  title               String
+  description         String?
+  produceName         String                        // Standardized produce name
+  variety             String?                       // e.g. "Sukari F1" (tomato variety)
+
+  // Quantity management
+  totalQuantity       Decimal        @db.Decimal(12, 3)  // Original quantity listed
+  availableQuantity   Decimal        @db.Decimal(12, 3)  // Decremented as orders are placed
+  unit                QuantityUnit   @default(KG)
+  minimumOrderQty     Decimal        @db.Decimal(12, 3) @default(1) // Minimum purchase unit
+
+  // Pricing
+  unitPrice           Decimal        @db.Decimal(10, 2)  // Price per KG or TON
+  currency            String         @default("KES")
+
+  // Harvest & freshness
+  harvestDate         DateTime
+  expiryDate          DateTime?                          // Expected shelf-life end
+  isOrganic           Boolean        @default(false)
+
+  // Location & delivery
+  farmLocation        String
+  latitude            Decimal?       @db.Decimal(9, 6)
+  longitude           Decimal?       @db.Decimal(9, 6)
+  deliveryOptions     DeliveryOption[]                   // SELF_PICKUP | DELIVERED | both
+  deliveryRadiusKm    Int?                               // Max delivery range in km
+  deliveryNotes       String?
+
+  // Media
+  imageUrls           String[]
+
+  // Status
+  status              ListingStatus  @default(DRAFT)
+  expiresAt           DateTime?                          // Listing visibility expiry
+
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  orderItems          OrderItem[]
+  listingViews        ListingView[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([produceName])
+  @@index([harvestDate])
+  @@index([availableQuantity])
+  // Geospatial queries via raw SQL; add PostGIS extension separately
+  @@index([latitude, longitude])
+}
+
+// Track listing views/impressions
+model ListingView {
+  id          String         @id @default(uuid())
+  listingId   String
+  listing     ProduceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  viewerId    String?                               // null = anonymous
+  viewedAt    DateTime       @default(now())
+  source      String?                               // "USSD" | "WEB" | "APP"
+
+  @@index([listingId])
+  @@index([viewedAt])
+}
+
+// ─────────────────────────────────────────────
+// ORDERS
+// ─────────────────────────────────────────────
+
+model Order {
+  id              String        @id @default(uuid())
+  orderNumber     String        @unique @default(cuid()) // Human-readable reference
+  buyerId         String
+  buyer           User          @relation("BuyerOrders", fields: [buyerId], references: [id])
+
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paymentMethod   PaymentMethod?
+
+  // Totals (denormalised for performance)
+  subtotalAmount  Decimal       @db.Decimal(12, 2)
+  deliveryFee     Decimal       @db.Decimal(10, 2) @default(0)
+  discountAmount  Decimal       @db.Decimal(10, 2) @default(0)
+  totalAmount     Decimal       @db.Decimal(12, 2)
+  currency        String        @default("KES")
+
+  // Delivery info (captured at order time)
+  deliveryOption  DeliveryOption
+  deliveryAddress String?
+  deliveryNotes   String?
+
+  // Timestamps
+  placedAt        DateTime      @default(now())
+  confirmedAt     DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  updatedAt       DateTime      @updatedAt
+
+  orderItems      OrderItem[]
+  payments        Payment[]
+  delivery        Delivery?
+
+  @@index([buyerId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([placedAt])
+  @@index([orderNumber])
+}
+
+// ─────────────────────────────────────────────
+// ORDER ITEMS  (supports partial quantity purchases)
+// ─────────────────────────────────────────────
+
+model OrderItem {
+  id                String         @id @default(uuid())
+  orderId           String
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId         String
+  listing           ProduceListing @relation(fields: [listingId], references: [id])
+
+  // Snapshot of listing details at order time (immutable record)
+  produceName       String
+  variety           String?
+  unit              QuantityUnit
+
+  // Partial quantity support
+  // e.g. 500 kg from a 2,000 kg listing
+  quantityOrdered   Decimal        @db.Decimal(12, 3)
+  unitPriceAtOrder  Decimal        @db.Decimal(10, 2)  // Price locked at order time
+  lineTotal         Decimal        @db.Decimal(12, 2)  // quantityOrdered × unitPriceAtOrder
+
+  // Fulfilment tracking
+  quantityDelivered Decimal        @db.Decimal(12, 3) @default(0)
+  isFulfilled       Boolean        @default(false)
+
+  farmLocation      String
+  sellerNotes       String?
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([orderId])
+  @@index([listingId])
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id])
+
+  amount            Decimal       @db.Decimal(12, 2)
+  currency          String        @default("KES")
+  method            PaymentMethod
+  status            PaymentStatus @default(UNPAID)
+
+  // Mobile Money / Gateway fields
+  transactionRef    String?       @unique            // External gateway reference
+  phoneUsed         String?                          // Mobile money number used
+  gatewayResponse   Json?                            // Raw gateway payload
+
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([transactionRef])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+// DELIVERIES
+// ─────────────────────────────────────────────
+
+model Delivery {
+  id                   String          @id @default(uuid())
+  orderId              String          @unique
+  order                Order           @relation(fields: [orderId], references: [id])
+  logisticsPartnerId   String?
+  logisticsPartner     User?           @relation("LogisticsPartnerDeliveries", fields: [logisticsPartnerId], references: [id])
+
+  status               DeliveryStatus  @default(NOT_ASSIGNED)
+  pickupAddress        String
+  deliveryAddress      String
+  scheduledPickupAt    DateTime?
+  pickedUpAt           DateTime?
+  estimatedDeliveryAt  DateTime?
+  deliveredAt          DateTime?
+  proofOfDeliveryUrl   String?
+  driverNotes          String?
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@index([logisticsPartnerId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+// USSD SESSIONS
+// ─────────────────────────────────────────────
+
+model USSDSession {
+  id              String            @id @default(uuid())
+  sessionId       String            @unique        // Telco-provided session identifier
+  phoneNumber     String                           // MSISDN of the feature phone
+  userId          String?                          // Null until user is identified/created
+  user            User?             @relation(fields: [userId], references: [id])
+
+  flowType        USSDFlowType                     // Which flow is running
+  status          USSDSessionStatus @default(ACTIVE)
+
+  // State machine tracking
+  currentStep     String                           // e.g. "ENTER_NAME", "CONFIRM_QUANTITY"
+  sessionData     Json              @default("{}")  // Accumulated inputs across steps
+  // Example sessionData for HARVEST_PUBLISH:
+  // {
+  //   "produceName": "Tomatoes",
+  //   "quantity": 2000,
+  //   "unit": "KG",
+  //   "price": 45,
+  //   "location": "Kirinyaga",
+  //   "deliveryOption": "DELIVERED"
+  // }
+
+  // Conversation log for debugging / replaying
+  inputHistory    Json              @default("[]") // Array of {step, input, timestamp}
+
+  serviceCode     String?                          // USSD short code e.g. "*384#"
+  networkOperator String?                          // e.g. "Safaricom", "MTN"
+
+  startedAt       DateTime          @default(now())
+  lastActivityAt  DateTime          @default(now()) @updatedAt
+  expiresAt       DateTime                          // Sessions expire after inactivity
+  completedAt     DateTime?
+
+  @@index([phoneNumber])
+  @@index([userId])
+  @@index([status])
+  @@index([flowType])
+  @@index([startedAt])
+  @@index([sessionId])
+}
+
+// ─────────────────────────────────────────────
+// REFRESH TOKENS  (JWT auth)
+// ─────────────────────────────────────────────
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  userAgent   String?
+  ipAddress   String?
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+enum NotificationChannel {
+  SMS
+  PUSH
+  EMAIL
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  channel   NotificationChannel
+  status    NotificationStatus  @default(PENDING)
+  title     String
+  body      String
+  metadata  Json?               // e.g. orderId, listingId for deep-linking
+  sentAt    DateTime?
+  readAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOGS
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String                              // e.g. "LISTING_CREATED", "ORDER_CANCELLED"
+  entityType  String                              // e.g. "ProduceListing", "Order"
+  entityId    String
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
