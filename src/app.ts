@@ -5,6 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import ussdRouter from "./ussd/ussd.routes";
+import orderRouter from "./orders/order.routes";
 import prisma from "./lib/prisma";
 
 // ─────────────────────────────────────────────────────────────
@@ -36,6 +37,9 @@ app.get("/health", (_req, res) => {
 
 /** USSD gateway callback */
 app.use("/ussd", ussdRouter);
+
+/** Orders API */
+app.use("/orders", orderRouter);
 
 // ─────────────────────────────────────────────────────────────
 // 404 handler
@@ -73,7 +77,10 @@ async function main() {
     console.log(
       `[Server] Fresheri backend running on http://localhost:${PORT}`
     );
-    console.log(`[USSD]   Callback endpoint → POST http://localhost:${PORT}/ussd`);
+    console.log(`[USSD]   Callback endpoint  → POST http://localhost:${PORT}/ussd`);
+    console.log(`[Orders] Place order        → POST http://localhost:${PORT}/orders`);
+    console.log(`[Orders] List buyer orders  → GET  http://localhost:${PORT}/orders?buyerId=`);
+    console.log(`[Orders] Get single order   → GET  http://localhost:${PORT}/orders/:id?buyerId=`);
   });
 
   // Graceful shutdown

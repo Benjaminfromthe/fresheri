@@ -374,7 +374,7 @@ export async function handleUSSD(req: Request, res: Response): Promise<void> {
 
     // 2. Rehydrate state from DB (or fresh default)
     const sessionData: USSDSessionData =
-      (dbSession.sessionData as USSDSessionData) ?? {
+      (dbSession.sessionData as unknown as USSDSessionData) ?? {
         step: USSDStep.LANGUAGE_SELECT,
       };
 
