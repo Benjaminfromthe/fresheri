@@ -1,10 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Africa's Talking SMS client wrapper
-// Typed, singleton, test-mode aware
+// Typed, singleton, lazy-initialised for serverless safety
 // ─────────────────────────────────────────────────────────────
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const AfricasTalking = require("africastalking");
 
 export interface SMSResult {
   messageId: string;
@@ -20,13 +17,22 @@ export interface SMSResponse {
   };
 }
 
-// Initialise once — reuse across the process lifetime
-const at = AfricasTalking({
-  apiKey: process.env.AT_API_KEY ?? "",
-  username: process.env.AT_USERNAME ?? "sandbox",
-});
+// Lazy singleton — initialised on first use so env vars are
+// guaranteed to be present (safe for both local and Vercel)
+let _smsClient: ReturnType<ReturnType<typeof require>["SMS"]> | null = null;
 
-const smsClient = at.SMS;
+function getSmsClient() {
+  if (_smsClient) return _smsClient;
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const AfricasTalking = require("africastalking");
+  const at = AfricasTalking({
+    apiKey:   process.env.AT_API_KEY   ?? "",
+    username: process.env.AT_USERNAME  ?? "sandbox",
+  });
+  _smsClient = at.SMS;
+  return _smsClient;
+}
 
 /**
  * Send an SMS to one or more phone numbers.
@@ -39,14 +45,14 @@ export async function sendSMS(
   to: string[],
   message: string
 ): Promise<SMSResponse | null> {
-  // Truncate to 459 chars (3 SMS segments max) to control costs
   const body = message.slice(0, 459);
 
   try {
+    const smsClient = getSmsClient();
     const response: SMSResponse = await smsClient.send({
       to,
       message: body,
-      enqueue: true, // Queue for reliable delivery
+      enqueue: true,
     });
 
     const recipients = response.SMSMessageData?.Recipients ?? [];

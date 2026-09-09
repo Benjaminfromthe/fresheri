@@ -7,7 +7,6 @@
 // ─────────────────────────────────────────────────────────────
 
 import "express-async-errors";
-import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
