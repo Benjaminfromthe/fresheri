@@ -103,12 +103,12 @@ export default function MarketplacePage() {
   // ── Order placement (calls our Express backend)
   const handlePlaceOrder = useCallback(
     async (deliveryOption: DeliveryOption, deliveryAddress: string) => {
-      // In production these come from the auth context
       const PLACEHOLDER_BUYER_ID = "00000000-0000-0000-0000-000000000001";
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://fresheri-v6kz.vercel.app";
 
       await Promise.all(
         cart.map((item) =>
-          fetch("/api/orders", {
+          fetch(`${API_BASE}/orders`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
