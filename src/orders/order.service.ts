@@ -13,6 +13,10 @@ import {
 } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { notifyBuyer, notifyFarmer } from "../lib/sms";
+import {
+  createDeliveryDispatch,
+  getPickupContactForBuyer,
+} from "../deliveries/dispatch.service";
 
 // ─────────────────────────────────────────────────────────────
 // Input / Output types
@@ -37,14 +41,25 @@ export interface PlaceOrderInput {
 }
 
 export interface PlaceOrderResult {
-  orderId: string;
-  orderNumber: string;
-  subtotalAmount: number;
-  deliveryFee: number;
-  totalAmount: number;
-  currency: string;
-  listingStatus: ListingStatus;
+  orderId:                string;
+  orderNumber:            string;
+  subtotalAmount:         number;
+  deliveryFee:            number;
+  totalAmount:            number;
+  currency:               string;
+  listingStatus:          ListingStatus;
   availableQuantityAfter: number;
+  fulfillment:            DeliveryOption;
+  /**
+   * SELF_PICKUP only — farmer pickup contact disclosed to this buyer.
+   * Null for DELIVERED orders (contact stays hidden from buyer).
+   */
+  pickupContact: {
+    pickupLocation: string;
+    farmerContact:  string;
+    farmerName:     string;
+    note:           string;
+  } | null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -284,18 +299,44 @@ export async function placeOrder(
   }); // ── END $transaction
 
   // ─────────────────────────────────────────────────────────
-  // POST-TRANSACTION: SMS Notifications
-  // These run AFTER commit — a send failure does not affect
-  // the order that has already been persisted.
+  // POST-TRANSACTION: contact disclosure + dispatch + SMS
+  // All fire AFTER commit — failures never roll back the order.
   // ─────────────────────────────────────────────────────────
 
-  // Fetch seller phone number for notification
+  // Fetch seller phone for SMS notification only
   const seller = await prisma.user.findUnique({
     where: { id: result.listing.seller_id },
     select: { phone: true },
   });
 
-  // Fire both notifications concurrently — don't await failures
+  // ── DELIVERY: create internal dispatch task (hidden from buyer)
+  let pickupContact: PlaceOrderResult["pickupContact"] = null;
+
+  if (deliveryOption === DeliveryOption.DELIVERED) {
+    // Fire-and-forget dispatch creation — failure is logged, not thrown
+    createDeliveryDispatch(result.order.id).catch((err) =>
+      console.error("[Dispatch] Failed to create delivery task:", err)
+    );
+    // pickupContact stays null — buyer never sees farmer details for delivery
+  }
+
+  // ── SELF_PICKUP: disclose farmer contact to this buyer only
+  if (deliveryOption === DeliveryOption.SELF_PICKUP) {
+    const disclosure = await getPickupContactForBuyer(
+      result.order.id,
+      buyerId
+    );
+    if (disclosure) {
+      pickupContact = {
+        pickupLocation: disclosure.pickupLocation,
+        farmerContact:  disclosure.farmerContact,
+        farmerName:     disclosure.farmerName,
+        note:           disclosure.note,
+      };
+    }
+  }
+
+  // ── SMS notifications (concurrent, non-blocking)
   await Promise.allSettled([
     notifyBuyer(
       buyer.phone,
@@ -311,23 +352,24 @@ export async function placeOrder(
           result.order.orderNumber,
           result.listing.produce_name,
           quantityKg,
-          result.subtotalAmount, // farmer receives subtotal (excl. delivery fee)
+          result.subtotalAmount,
           result.currency,
           result.newListingStatus === ListingStatus.SOLD_OUT
         )
       : Promise.resolve(),
   ]);
 
-  // ── Return summary to the controller
   return {
-    orderId: result.order.id,
-    orderNumber: result.order.orderNumber,
-    subtotalAmount: result.subtotalAmount,
-    deliveryFee: result.deliveryFee,
-    totalAmount: result.totalAmount,
-    currency: result.currency,
-    listingStatus: result.newListingStatus,
+    orderId:                result.order.id,
+    orderNumber:            result.order.orderNumber,
+    subtotalAmount:         result.subtotalAmount,
+    deliveryFee:            result.deliveryFee,
+    totalAmount:            result.totalAmount,
+    currency:               result.currency,
+    listingStatus:          result.newListingStatus,
     availableQuantityAfter: result.newAvailableQty,
+    fulfillment:            deliveryOption,
+    pickupContact,          // null for DELIVERED, populated for SELF_PICKUP
   };
 }
 

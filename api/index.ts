@@ -11,8 +11,9 @@ import express, { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 
-import ussdRouter  from "../src/ussd/ussd.routes";
-import orderRouter from "../src/orders/order.routes";
+import ussdRouter    from "../src/ussd/ussd.routes";
+import orderRouter   from "../src/orders/order.routes";
+import listingRouter from "../src/listings/listing.routes";
 
 // ── Create the Express app (no prisma.$connect — Prisma connects
 //    lazily on first query, which is correct for serverless)
@@ -41,8 +42,9 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.use("/ussd",   ussdRouter);
-app.use("/orders", orderRouter);
+app.use("/ussd",     ussdRouter);
+app.use("/orders",   orderRouter);
+app.use("/listings", listingRouter);
 
 // ── 404
 app.use((_req: Request, res: Response) => {

@@ -14,6 +14,7 @@ import {
   BuyerNotFoundError,
   InvalidDeliveryOptionError,
 } from "./order.service";
+import { getPickupContactForBuyer } from "../deliveries/dispatch.service";
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -206,5 +207,45 @@ export async function getOrder(req: Request, res: Response): Promise<void> {
     res.status(200).json({ data: order });
   } catch (err) {
     handleServiceError(err, res);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// GET /orders/:id/pickup-contact
+// Discloses farmer pickup location + phone to the buyer ONLY
+// when fulfillment is SELF_PICKUP and order is CONFIRMED.
+// Any other case returns 403 — no information leakage.
+// ─────────────────────────────────────────────────────────────
+
+export async function getPickupContact(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { id } = req.params;
+
+  // req.caller populated by resolveCallerMiddleware on this route
+  const buyerId = req.caller?.userId;
+  if (!buyerId) {
+    res.status(401).json({ error: "UNAUTHENTICATED", message: "Authentication required." });
+    return;
+  }
+
+  try {
+    const disclosure = await getPickupContactForBuyer(id, buyerId);
+
+    if (!disclosure) {
+      // Deliberately vague — don't confirm whether order exists
+      res.status(403).json({
+        error: "CONTACT_NOT_AVAILABLE",
+        message:
+          "Pickup contact is only available for your confirmed SELF_PICKUP orders.",
+      });
+      return;
+    }
+
+    res.status(200).json({ data: disclosure });
+  } catch (err) {
+    console.error("[OrderController] getPickupContact error:", err);
+    res.status(500).json({ error: "INTERNAL_ERROR", message: "An unexpected error occurred." });
   }
 }
