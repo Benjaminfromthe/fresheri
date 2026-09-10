@@ -9,9 +9,9 @@ import {
   Search,
 } from "lucide-react";
 
-import FilterSidebar from "@/components/marketplace/FilterSidebar";
-import ProduceCard   from "@/components/marketplace/ProduceCard";
-import CheckoutModal from "@/components/marketplace/CheckoutModal";
+import FilterSidebar  from "@/components/marketplace/FilterSidebar";
+import ProduceCard    from "@/components/marketplace/ProduceCard";
+import CheckoutModal  from "@/components/marketplace/CheckoutModal";
 
 import { MOCK_LISTINGS } from "@/lib/mock-listings";
 import {
@@ -19,11 +19,12 @@ import {
   DEFAULT_FILTERS,
   DeliveryOption,
   MarketplaceFilters,
+  OrderResult,
   ProduceListing,
 } from "@/types/marketplace";
 
 // ─────────────────────────────────────────────────────────────
-// Filter logic
+// Filter logic — updated to use `region` (was `farmLocation`)
 // ─────────────────────────────────────────────────────────────
 
 function applyFilters(
@@ -36,25 +37,31 @@ function applyFilters(
 
     if (filters.category && l.categoryName !== filters.category) return false;
 
-    if (filters.minAvailableQty > 0 && l.availableQuantity < filters.minAvailableQty)
+    if (
+      filters.minAvailableQty > 0 &&
+      l.availableQuantity < filters.minAvailableQty
+    )
       return false;
 
     if (
       filters.location &&
-      !l.farmLocation.toLowerCase().includes(filters.location.toLowerCase())
+      !l.region.toLowerCase().includes(filters.location.toLowerCase())
     )
       return false;
 
-    if (filters.fulfillment !== "ALL" && !l.deliveryOptions.includes(filters.fulfillment as DeliveryOption))
+    if (
+      filters.fulfillment !== "ALL" &&
+      !l.deliveryOptions.includes(filters.fulfillment as DeliveryOption)
+    )
       return false;
 
     if (search.trim()) {
       const q = search.toLowerCase();
       if (
         !l.produceName.toLowerCase().includes(q) &&
-        !l.sellerName.toLowerCase().includes(q) &&
+        !l.sellerDisplayName.toLowerCase().includes(q) &&
         !(l.variety ?? "").toLowerCase().includes(q) &&
-        !l.farmLocation.toLowerCase().includes(q)
+        !l.region.toLowerCase().includes(q)
       )
         return false;
     }
@@ -68,29 +75,37 @@ function applyFilters(
 // ─────────────────────────────────────────────────────────────
 
 export default function MarketplacePage() {
-  const [filters, setFilters]           = useState<MarketplaceFilters>(DEFAULT_FILTERS);
-  const [search, setSearch]             = useState("");
-  const [cart, setCart]                 = useState<CartItem[]>([]);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [filters, setFilters]                     = useState<MarketplaceFilters>(DEFAULT_FILTERS);
+  const [search, setSearch]                       = useState("");
+  const [cart, setCart]                           = useState<CartItem[]>([]);
+  const [showCheckout, setShowCheckout]           = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // ── Filtered listings
   const filteredListings = useMemo(
     () => applyFilters(MOCK_LISTINGS, filters, search),
     [filters, search]
   );
 
-  // ── Cart operations
+  // ── Add to cart — now includes fulfillment per item
   const handleAddToCart = useCallback(
-    (listing: ProduceListing, qty: number) => {
+    (
+      listing: ProduceListing,
+      qty: number,
+      fulfillment: DeliveryOption
+    ) => {
       setCart((prev) => {
         const existing = prev.find((i) => i.listing.id === listing.id);
         if (existing) {
           return prev.map((i) =>
-            i.listing.id === listing.id ? { ...i, quantityKg: qty } : i
+            i.listing.id === listing.id
+              ? { ...i, quantityKg: qty, selectedFulfillment: fulfillment }
+              : i
           );
         }
-        return [...prev, { listing, quantityKg: qty }];
+        return [
+          ...prev,
+          { listing, quantityKg: qty, selectedFulfillment: fulfillment },
+        ];
       });
     },
     []
@@ -100,35 +115,44 @@ export default function MarketplacePage() {
     setCart((prev) => prev.filter((i) => i.listing.id !== listingId));
   }, []);
 
-  // ── Order placement (calls our Express backend)
+  // ── Place order — returns OrderResult[] (with optional pickupContact)
   const handlePlaceOrder = useCallback(
-    async (deliveryOption: DeliveryOption, deliveryAddress: string) => {
+    async (
+      deliveryOption: DeliveryOption,
+      deliveryAddress: string
+    ): Promise<OrderResult[]> => {
       const PLACEHOLDER_BUYER_ID = "00000000-0000-0000-0000-000000000001";
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://fresheri-v6kz.vercel.app";
+      const API_BASE =
+        process.env.NEXT_PUBLIC_API_URL ?? "https://fresheri-v6kz.vercel.app";
 
-      await Promise.all(
-        cart.map((item) =>
-          fetch(`${API_BASE}/orders`, {
+      const results = await Promise.all(
+        cart.map(async (item) => {
+          const res = await fetch(`${API_BASE}/orders`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              buyerId:         PLACEHOLDER_BUYER_ID,
-              listingId:       item.listing.id,
-              quantityKg:      item.quantityKg,
+              buyerId:        PLACEHOLDER_BUYER_ID,
+              listingId:      item.listing.id,
+              quantityKg:     item.quantityKg,
               deliveryOption,
               deliveryAddress: deliveryAddress || undefined,
             }),
-          }).then(async (res) => {
-            if (!res.ok) {
-              const body = await res.json();
-              throw new Error(body.message ?? "Order failed");
-            }
-          })
-        )
+          });
+
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(
+              (body as { message?: string }).message ?? "Order failed"
+            );
+          }
+
+          const json = await res.json() as { data: OrderResult };
+          return json.data;
+        })
       );
 
-      // Clear cart on success
       setCart([]);
+      return results;
     },
     [cart]
   );
@@ -140,7 +164,6 @@ export default function MarketplacePage() {
   );
   const currency = cart[0]?.listing.currency ?? "KES";
 
-  // ─────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -148,18 +171,14 @@ export default function MarketplacePage() {
       <header className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 
-          {/* Logo */}
           <div className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center">
               <Sprout size={18} className="text-white" />
             </div>
-            <span className="font-bold text-gray-900 text-lg hidden sm:block">
-              Fresheri
-            </span>
+            <span className="font-bold text-gray-900 text-lg hidden sm:block">Fresheri</span>
             <span className="text-xs text-gray-400 hidden sm:block">Marketplace</span>
           </div>
 
-          {/* Search bar */}
           <div className="relative flex-1 max-w-md">
             <Search
               size={16}
@@ -167,16 +186,14 @@ export default function MarketplacePage() {
             />
             <input
               type="search"
-              placeholder="Search produce, cooperative, location…"
+              placeholder="Search produce, cooperative, region…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent bg-gray-50"
             />
           </div>
 
-          {/* Right actions */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Mobile filter toggle */}
             <button
               onClick={() => setMobileSidebarOpen(true)}
               className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -185,7 +202,6 @@ export default function MarketplacePage() {
               <SlidersHorizontal size={16} />
             </button>
 
-            {/* Cart button */}
             <button
               onClick={() => setShowCheckout(true)}
               disabled={cartCount === 0}
@@ -211,18 +227,29 @@ export default function MarketplacePage() {
             Bulk Produce Marketplace
           </h1>
           <p className="text-green-100 text-sm sm:text-base max-w-xl">
-            Source directly from verified farmer cooperatives. Buy in bulk,
-            get fresh, reduce costs.
+            Source directly from verified farmer cooperatives. Privacy-protected
+            — farmer identity revealed only upon your confirmed fulfillment choice.
           </p>
 
-          {/* Quick stats */}
           <div className="mt-5 flex flex-wrap gap-4">
             {[
-              { label: "Active Listings",  value: MOCK_LISTINGS.filter(l => l.status !== "SOLD_OUT").length },
-              { label: "Cooperatives",     value: new Set(MOCK_LISTINGS.map(l => l.sellerName)).size },
-              { label: "Crop Categories",  value: new Set(MOCK_LISTINGS.map(l => l.categoryName)).size },
+              {
+                label: "Active Listings",
+                value: MOCK_LISTINGS.filter((l) => l.status !== "SOLD_OUT").length,
+              },
+              {
+                label: "Cooperatives",
+                value: new Set(MOCK_LISTINGS.map((l) => l.sellerDisplayName)).size,
+              },
+              {
+                label: "Crop Categories",
+                value: new Set(MOCK_LISTINGS.map((l) => l.categoryName)).size,
+              },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
+              <div
+                key={label}
+                className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2"
+              >
                 <p className="text-xl font-bold">{value}</p>
                 <p className="text-green-100 text-xs">{label}</p>
               </div>
@@ -235,7 +262,7 @@ export default function MarketplacePage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex gap-6">
 
-          {/* ── Desktop Filter Sidebar ── */}
+          {/* Desktop filter sidebar */}
           <div className="hidden lg:block sticky top-20 self-start">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
               <FilterSidebar
@@ -246,13 +273,13 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* ── Listings grid ── */}
+          {/* Listings grid */}
           <div className="flex-1 min-w-0">
-
-            {/* Result bar */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-500">
-                <span className="font-semibold text-gray-800">{filteredListings.length}</span>{" "}
+                <span className="font-semibold text-gray-800">
+                  {filteredListings.length}
+                </span>{" "}
                 listing{filteredListings.length !== 1 ? "s" : ""} available
               </p>
               {cartCount > 0 && (
@@ -262,7 +289,11 @@ export default function MarketplacePage() {
                 >
                   <ShoppingCart size={14} />
                   {cartCount} item{cartCount !== 1 ? "s" : ""} ·{" "}
-                  {currency} {cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {currency}{" "}
+                  {cartTotal.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </button>
               )}
             </div>
@@ -272,7 +303,10 @@ export default function MarketplacePage() {
                 <Sprout size={48} className="opacity-30" />
                 <p className="font-semibold text-lg">No listings match your filters</p>
                 <button
-                  onClick={() => { setFilters(DEFAULT_FILTERS); setSearch(""); }}
+                  onClick={() => {
+                    setFilters(DEFAULT_FILTERS);
+                    setSearch("");
+                  }}
                   className="text-sm text-green-600 hover:underline"
                 >
                   Clear all filters
@@ -293,15 +327,13 @@ export default function MarketplacePage() {
         </div>
       </main>
 
-      {/* ── Mobile Filter Drawer ── */}
+      {/* Mobile filter drawer */}
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileSidebarOpen(false)}
           />
-          {/* Drawer */}
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <span className="font-bold text-gray-900">Filters</span>
@@ -316,7 +348,10 @@ export default function MarketplacePage() {
             <div className="flex-1 overflow-y-auto p-5">
               <FilterSidebar
                 filters={filters}
-                onChange={(f) => { setFilters(f); setMobileSidebarOpen(false); }}
+                onChange={(f) => {
+                  setFilters(f);
+                  setMobileSidebarOpen(false);
+                }}
                 totalResults={filteredListings.length}
               />
             </div>
@@ -324,7 +359,7 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      {/* ── Checkout Modal ── */}
+      {/* Checkout modal */}
       {showCheckout && (
         <CheckoutModal
           cart={cart}

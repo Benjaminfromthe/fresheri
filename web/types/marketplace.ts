@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // Shared marketplace types (frontend)
+// Aligned with the backend privacy-safe API response shape.
 // ─────────────────────────────────────────────────────────────
 
 export type DeliveryOption = "SELF_PICKUP" | "DELIVERED";
@@ -11,11 +12,20 @@ export interface ProduceListing {
   produceName: string;
   variety: string | null;
   categoryName: string;
-  /** Name of the selling cooperative / farmer */
-  sellerName: string;
+  /**
+   * Cooperative or farm name — never a personal farmer name.
+   * Matches backend `sellerDisplayName`.
+   */
+  sellerDisplayName: string;
   sellerVerified: boolean;
-  farmLocation: string;
+  /**
+   * District-level area only — e.g. "Kayonza District".
+   * Exact street address is NEVER surfaced publicly.
+   * Matches backend `region`.
+   */
+  region: string;
   harvestDate: string;           // ISO date string
+  expiryDate: string | null;
   totalQuantity: number;
   availableQuantity: number;
   unit: QuantityUnit;
@@ -29,12 +39,12 @@ export interface ProduceListing {
   status: ListingStatus;
 }
 
-// ── Filter state ──────────────────────────────────────────────
+// ── Filter state ─────────────────────────────────────────────
 
 export interface MarketplaceFilters {
-  category: string;              // "" = all
-  minAvailableQty: number;       // kg — 0 = no minimum
-  location: string;              // "" = all
+  category: string;
+  minAvailableQty: number;
+  location: string;
   fulfillment: DeliveryOption | "ALL";
 }
 
@@ -45,12 +55,16 @@ export const DEFAULT_FILTERS: MarketplaceFilters = {
   fulfillment: "ALL",
 };
 
-// ── Cart / checkout ───────────────────────────────────────────
+// ── Cart ─────────────────────────────────────────────────────
 
 export interface CartItem {
   listing: ProduceListing;
   quantityKg: number;
+  /** Fulfillment choice made on the card before adding to cart */
+  selectedFulfillment: DeliveryOption;
 }
+
+// ── Checkout totals ──────────────────────────────────────────
 
 export interface CheckoutTotals {
   subtotal: number;
@@ -59,6 +73,29 @@ export interface CheckoutTotals {
   currency: string;
 }
 
-// Delivery fee schedule (per km band) — replace with API call later
-export const DELIVERY_FEE_PER_KM = 15;   // KES/RWF per km flat rate
-export const BASE_DELIVERY_FEE   = 500;  // base fee when DELIVERED is selected
+export const BASE_DELIVERY_FEE = 500; // KES/RWF flat base fee
+
+// ── Post-order result ────────────────────────────────────────
+
+/**
+ * Pickup contact disclosed to buyer ONLY for SELF_PICKUP
+ * confirmed orders.  null for DELIVERED orders.
+ */
+export interface PickupContact {
+  pickupLocation: string;
+  farmerContact: string;
+  farmerName: string;
+  note: string;
+}
+
+export interface OrderResult {
+  orderId: string;
+  orderNumber: string;
+  subtotalAmount: number;
+  deliveryFee: number;
+  totalAmount: number;
+  currency: string;
+  fulfillment: DeliveryOption;
+  /** Present only for SELF_PICKUP — null for DELIVERED */
+  pickupContact: PickupContact | null;
+}

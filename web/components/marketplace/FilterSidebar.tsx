@@ -1,6 +1,6 @@
 "use client";
 
-import { Filter, RotateCcw, MapPin, Truck, Package, Leaf } from "lucide-react";
+import { Filter, RotateCcw, MapPin, Truck, Package } from "lucide-react";
 import {
   MarketplaceFilters,
   DEFAULT_FILTERS,

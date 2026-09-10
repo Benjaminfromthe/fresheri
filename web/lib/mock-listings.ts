@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // Mock produce listings — replace with real API fetch later
+// Fields match the backend privacy-safe PublicListing shape.
 // ─────────────────────────────────────────────────────────────
 
 import { ProduceListing } from "@/types/marketplace";
@@ -10,10 +11,11 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     produceName: "Tomatoes",
     variety: "Sukari F1",
     categoryName: "Vegetables",
-    sellerName: "Kirinyaga Farmers Cooperative",
+    sellerDisplayName: "Kirinyaga Farmers Cooperative",
     sellerVerified: true,
-    farmLocation: "Kirinyaga, Kenya",
+    region: "Kirinyaga District",
     harvestDate: "2026-09-01",
+    expiryDate: null,
     totalQuantity: 2000,
     availableQuantity: 1500,
     unit: "KG",
@@ -31,10 +33,11 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     produceName: "Rice",
     variety: "Basmati",
     categoryName: "Grains",
-    sellerName: "Mwea Rice Growers Co-op",
+    sellerDisplayName: "Mwea Rice Growers Co-op",
     sellerVerified: true,
-    farmLocation: "Mwea, Kenya",
+    region: "Mwea District",
     harvestDate: "2026-08-20",
+    expiryDate: null,
     totalQuantity: 5000,
     availableQuantity: 5000,
     unit: "KG",
@@ -52,10 +55,11 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     produceName: "Irish Potatoes",
     variety: "Shangi",
     categoryName: "Tubers",
-    sellerName: "Nyandarua Highland Farmers",
+    sellerDisplayName: "Nyandarua Highland Farmers",
     sellerVerified: true,
-    farmLocation: "Nyandarua, Kenya",
+    region: "Nyandarua District",
     harvestDate: "2026-09-03",
+    expiryDate: null,
     totalQuantity: 3000,
     availableQuantity: 800,
     unit: "KG",
@@ -73,10 +77,11 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     produceName: "Maize",
     variety: "DK8031",
     categoryName: "Grains",
-    sellerName: "Rift Valley Grain Cooperative",
+    sellerDisplayName: "Rift Valley Grain Cooperative",
     sellerVerified: false,
-    farmLocation: "Nakuru, Kenya",
+    region: "Nakuru District",
     harvestDate: "2026-08-15",
+    expiryDate: null,
     totalQuantity: 10000,
     availableQuantity: 10000,
     unit: "KG",
@@ -94,10 +99,11 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     produceName: "Onions",
     variety: "Red Creole",
     categoryName: "Vegetables",
-    sellerName: "Kajiado Small Farmers Union",
+    sellerDisplayName: "Kajiado Small Farmers Union",
     sellerVerified: true,
-    farmLocation: "Kajiado, Kenya",
+    region: "Kajiado District",
     harvestDate: "2026-09-05",
+    expiryDate: null,
     totalQuantity: 1500,
     availableQuantity: 1200,
     unit: "KG",
@@ -115,10 +121,11 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     produceName: "Spinach",
     variety: null,
     categoryName: "Vegetables",
-    sellerName: "Kiambu Organic Growers",
+    sellerDisplayName: "Kiambu Organic Growers",
     sellerVerified: true,
-    farmLocation: "Kiambu, Kenya",
+    region: "Kiambu District",
     harvestDate: "2026-09-07",
+    expiryDate: null,
     totalQuantity: 500,
     availableQuantity: 500,
     unit: "KG",
@@ -138,7 +145,5 @@ export const CROP_CATEGORIES = [
 ].sort();
 
 export const LOCATIONS = [
-  ...new Set(
-    MOCK_LISTINGS.map((l) => l.farmLocation.split(",")[0].trim())
-  ),
+  ...new Set(MOCK_LISTINGS.map((l) => l.region.replace(" District", ""))),
 ].sort();
