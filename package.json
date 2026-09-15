@@ -8,7 +8,8 @@
     "build": "prisma generate && tsc",
     "vercel-build": "prisma generate && tsc",
     "start": "node dist/app.js",
-    "prisma:generate": "prisma generate",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
@@ -27,6 +28,9 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.5.1",
+    "ts-jest": "^29.4.12",
     "ts-node-dev": "^2.0.0"
   }
 }

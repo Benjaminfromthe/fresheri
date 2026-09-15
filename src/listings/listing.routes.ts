@@ -1,35 +1,21 @@
 import { Router } from "express";
-import {
-  listPublicListings,
-  getListingById,
-  getMyListings,
-} from "./listing.controller";
-import {
-  resolveCallerMiddleware,
-  requireRoles,
-  SELLER_ROLES,
-} from "../middleware/rbac";
+import { PrismaClient } from "@prisma/client";
+import { createListingController } from "./listing.controller";
+import { resolveCallerMiddleware, requireRoles } from "../middleware/rbac";
+import { SELLER_ROLES } from "../constants/roles";
 
-const router = Router();
+export function createListingRouter(db: PrismaClient): Router {
+  const router = Router();
+  const ctrl   = createListingController(db);
 
-/**
- * GET  /listings          — public browse (no auth required)
- * GET  /listings/mine     — seller's own listings (auth required)
- * GET  /listings/:id      — public single listing (no auth required)
- */
+  /**
+   * GET /listings          — public browse (no auth)
+   * GET /listings/mine     — seller's own listings (auth required)
+   * GET /listings/:id      — public single listing (no auth)
+   */
+  router.get("/",     ctrl.listPublicListings);
+  router.get("/mine", resolveCallerMiddleware(db), requireRoles(...SELLER_ROLES), ctrl.getMyListings);
+  router.get("/:id",  ctrl.getListingById);
 
-// Public routes — no auth
-router.get("/",    listPublicListings);
-
-// Seller-only route — must come BEFORE /:id to avoid param capture
-router.get(
-  "/mine",
-  resolveCallerMiddleware,
-  requireRoles(...SELLER_ROLES),
-  getMyListings
-);
-
-// Public single listing
-router.get("/:id", getListingById);
-
-export default router;
+  return router;
+}

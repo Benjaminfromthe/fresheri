@@ -20,10 +20,10 @@ import {
   CartItem,
   DeliveryOption,
   CheckoutTotals,
-  BASE_DELIVERY_FEE,
   OrderResult,
   PickupContact,
 } from "@/types/marketplace";
+import { BASE_DELIVERY_FEE } from "@/lib/constants";
 import FulfillmentToggle from "./FulfillmentToggle";
 import PrivacyBadge from "./PrivacyBadge";
 

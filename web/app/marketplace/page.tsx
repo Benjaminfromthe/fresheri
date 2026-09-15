@@ -14,6 +14,8 @@ import ProduceCard    from "@/components/marketplace/ProduceCard";
 import CheckoutModal  from "@/components/marketplace/CheckoutModal";
 
 import { MOCK_LISTINGS } from "@/lib/mock-listings";
+import { placeOrderBatch } from "@/lib/api-client";
+import { PLACEHOLDER_BUYER_ID } from "@/lib/constants";
 import {
   CartItem,
   DEFAULT_FILTERS,
@@ -115,42 +117,21 @@ export default function MarketplacePage() {
     setCart((prev) => prev.filter((i) => i.listing.id !== listingId));
   }, []);
 
-  // ── Place order — returns OrderResult[] (with optional pickupContact)
+  // ── Place order — delegates to api-client, no raw fetch here
   const handlePlaceOrder = useCallback(
     async (
       deliveryOption: DeliveryOption,
       deliveryAddress: string
     ): Promise<OrderResult[]> => {
-      const PLACEHOLDER_BUYER_ID = "00000000-0000-0000-0000-000000000001";
-      const API_BASE =
-        process.env.NEXT_PUBLIC_API_URL ?? "https://fresheri-v6kz.vercel.app";
-
-      const results = await Promise.all(
-        cart.map(async (item) => {
-          const res = await fetch(`${API_BASE}/orders`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              buyerId:        PLACEHOLDER_BUYER_ID,
-              listingId:      item.listing.id,
-              quantityKg:     item.quantityKg,
-              deliveryOption,
-              deliveryAddress: deliveryAddress || undefined,
-            }),
-          });
-
-          if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            throw new Error(
-              (body as { message?: string }).message ?? "Order failed"
-            );
-          }
-
-          const json = await res.json() as { data: OrderResult };
-          return json.data;
-        })
+      const results = await placeOrderBatch(
+        cart.map((item) => ({
+          buyerId:         PLACEHOLDER_BUYER_ID,
+          listingId:       item.listing.id,
+          quantityKg:      item.quantityKg,
+          deliveryOption,
+          deliveryAddress: deliveryAddress || undefined,
+        }))
       );
-
       setCart([]);
       return results;
     },

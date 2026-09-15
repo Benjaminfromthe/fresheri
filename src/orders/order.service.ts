@@ -1,331 +1,233 @@
 // ─────────────────────────────────────────────────────────────
-// Order Processing Service
-// Atomic inventory reservation + order creation via Prisma
+// Order Service — Business Logic Layer
+//
+// Architecture compliance:
+//   ✅ Receives PrismaClient + SmsService as injected dependencies
+//   ✅ All Prisma queries use explicit `select` blocks
+//   ✅ Domain errors from src/constants/errors.ts
+//   ✅ Config values from src/constants/config.ts
+//   ✅ Atomic $transaction with SELECT FOR UPDATE row lock
+//   ✅ SMS fires post-commit via Promise.allSettled
 // ─────────────────────────────────────────────────────────────
 
-import { Decimal } from "@prisma/client/runtime/library";
+import { PrismaClient, DeliveryOption, ListingStatus, OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
 import {
-  DeliveryOption,
-  ListingStatus,
-  OrderStatus,
-  PaymentMethod,
-  PaymentStatus,
-} from "@prisma/client";
-import prisma from "../lib/prisma";
-import { notifyBuyer, notifyFarmer } from "../lib/sms";
-import {
-  createDeliveryDispatch,
-  getPickupContactForBuyer,
-} from "../deliveries/dispatch.service";
+  BuyerNotFoundError,
+  InsufficientInventoryError,
+  InvalidDeliveryOptionError,
+  ListingNotFoundError,
+  OrderNotFoundError,
+} from "../constants/errors";
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/config";
+import { SmsService } from "../lib/sms";
+import { createDeliveryDispatch, getPickupContactForBuyer } from "../deliveries/dispatch.service";
 
-// ─────────────────────────────────────────────────────────────
-// Input / Output types
-// ─────────────────────────────────────────────────────────────
+// ── Input / Output types ─────────────────────────────────────
 
 export interface PlaceOrderInput {
   buyerId: string;
   listingId: string;
-  /** Requested quantity in kg */
   quantityKg: number;
   deliveryOption: DeliveryOption;
-  /** Required when deliveryOption = DELIVERED */
   deliveryAddress?: string;
   deliveryNotes?: string;
   paymentMethod?: PaymentMethod;
-  /**
-   * Flat delivery fee in the listing's currency.
-   * Passed in by the caller (e.g. calculated by a logistics quote service).
-   * Defaults to 0 for SELF_PICKUP.
-   */
   deliveryFeeOverride?: number;
 }
 
 export interface PlaceOrderResult {
-  orderId:                string;
-  orderNumber:            string;
-  subtotalAmount:         number;
-  deliveryFee:            number;
-  totalAmount:            number;
-  currency:               string;
-  listingStatus:          ListingStatus;
+  orderId: string;
+  orderNumber: string;
+  subtotalAmount: number;
+  deliveryFee: number;
+  totalAmount: number;
+  currency: string;
+  listingStatus: ListingStatus;
   availableQuantityAfter: number;
-  fulfillment:            DeliveryOption;
-  /**
-   * SELF_PICKUP only — farmer pickup contact disclosed to this buyer.
-   * Null for DELIVERED orders (contact stays hidden from buyer).
-   */
+  fulfillment: DeliveryOption;
   pickupContact: {
     pickupLocation: string;
-    farmerContact:  string;
-    farmerName:     string;
-    note:           string;
+    farmerContact: string;
+    farmerName: string;
+    note: string;
   } | null;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Custom errors — callers can instanceof-check these
-// ─────────────────────────────────────────────────────────────
+// ── Explicit select for buyer-facing order rows ───────────────
 
-export class InsufficientInventoryError extends Error {
-  constructor(
-    public readonly available: number,
-    public readonly requested: number
-  ) {
-    super(
-      `Insufficient inventory: ${available}kg available, ${requested}kg requested.`
-    );
-    this.name = "InsufficientInventoryError";
-  }
-}
+const ORDER_ITEM_SELECT = {
+  id:               true,
+  produceName:      true,
+  variety:          true,
+  unit:             true,
+  quantityOrdered:  true,
+  unitPriceAtOrder: true,
+  lineTotal:        true,
+  quantityDelivered:true,
+  isFulfilled:      true,
+  farmLocation:     true,
+  sellerNotes:      true,
+  createdAt:        true,
+  updatedAt:        true,
+} as const;
 
-export class ListingNotFoundError extends Error {
-  constructor(listingId: string) {
-    super(`Listing ${listingId} not found or is not available for purchase.`);
-    this.name = "ListingNotFoundError";
-  }
-}
-
-export class BuyerNotFoundError extends Error {
-  constructor(buyerId: string) {
-    super(`Buyer ${buyerId} not found.`);
-    this.name = "BuyerNotFoundError";
-  }
-}
-
-export class InvalidDeliveryOptionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "InvalidDeliveryOptionError";
-  }
-}
-
-// ─────────────────────────────────────────────────────────────
-// Helper — convert Prisma Decimal to JS number safely
-// ─────────────────────────────────────────────────────────────
-
-function toNumber(d: Decimal): number {
-  return d.toNumber();
-}
+const ORDER_SELECT = {
+  id:              true,
+  orderNumber:     true,
+  buyerId:         true,
+  status:          true,
+  paymentStatus:   true,
+  paymentMethod:   true,
+  subtotalAmount:  true,
+  deliveryFee:     true,
+  discountAmount:  true,
+  totalAmount:     true,
+  currency:        true,
+  deliveryOption:  true,
+  deliveryAddress: true,
+  deliveryNotes:   true,
+  placedAt:        true,
+  confirmedAt:     true,
+  deliveredAt:     true,
+  cancelledAt:     true,
+  updatedAt:       true,
+} as const;
 
 // ─────────────────────────────────────────────────────────────
-// Core service function
+// placeOrder
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Places a buyer order against a pooled farmer inventory listing.
- *
- * Guarantees (all-or-nothing via Prisma $transaction):
- *   1. Re-reads listing inside the transaction with a FOR UPDATE row lock
- *      to prevent double-selling under concurrent requests.
- *   2. Validates requested quantity <= available_quantity.
- *   3. Decrements available_quantity atomically.
- *   4. Sets listing status to SOLD_OUT when available_quantity reaches 0,
- *      or PARTIALLY_SOLD when some stock remains.
- *   5. Creates Order + OrderItem records with price snapshot.
- *
- * SMS notifications fire AFTER the transaction commits so a
- * notification failure can never roll back a completed order.
- */
 export async function placeOrder(
-  input: PlaceOrderInput
+  input: PlaceOrderInput,
+  db: PrismaClient,
+  sms: SmsService
 ): Promise<PlaceOrderResult> {
-  const {
-    buyerId,
-    listingId,
-    quantityKg,
-    deliveryOption,
-    deliveryAddress,
-    deliveryNotes,
-    paymentMethod,
-    deliveryFeeOverride,
-  } = input;
+  const { buyerId, listingId, quantityKg, deliveryOption,
+    deliveryAddress, deliveryNotes, paymentMethod, deliveryFeeOverride } = input;
 
-  // ── Pre-flight: validate delivery address requirement
   if (deliveryOption === DeliveryOption.DELIVERED && !deliveryAddress?.trim()) {
     throw new InvalidDeliveryOptionError(
       "deliveryAddress is required when deliveryOption is DELIVERED."
     );
   }
 
-  // ── Pre-flight: fetch buyer (outside transaction — read-only check)
-  const buyer = await prisma.user.findUnique({
+  // Pre-flight buyer check (outside transaction — read-only)
+  const buyer = await db.user.findUnique({
     where: { id: buyerId },
-    select: { id: true, phone: true, firstName: true, lastName: true },
+    select: { id: true, phone: true, firstName: true },
   });
   if (!buyer) throw new BuyerNotFoundError(buyerId);
 
-  // ─────────────────────────────────────────────────────────
-  // ATOMIC TRANSACTION
-  // All inventory and order mutations happen in one transaction.
-  // Prisma uses READ COMMITTED by default; we use a raw SELECT
-  // FOR UPDATE to lock the listing row for the duration.
-  // ─────────────────────────────────────────────────────────
-  const result = await prisma.$transaction(async (tx) => {
-
-    // 1. Lock & re-read the listing row to prevent race conditions
-    //    under concurrent order placement for the same listing.
-    const listings = await tx.$queryRaw<
-      Array<{
-        id: string;
-        seller_id: string;
-        produce_name: string;
-        variety: string | null;
-        available_quantity: string; // Prisma returns Decimal as string in raw queries
-        total_quantity: string;
-        unit_price: string;
-        unit: string;
-        farm_location: string;
-        status: string;
-        currency: string;
-        delivery_options: DeliveryOption[];
-      }>
-    >`
-      SELECT
-        id,
-        seller_id,
-        produce_name,
-        variety,
-        available_quantity,
-        total_quantity,
-        unit_price,
-        unit,
-        farm_location,
-        status,
-        currency,
-        delivery_options
+  // ── ATOMIC TRANSACTION ───────────────────────────────────
+  const result = await db.$transaction(async (tx) => {
+    // SELECT FOR UPDATE — row lock to prevent double-selling
+    const listings = await tx.$queryRaw<Array<{
+      id: string;
+      seller_id: string;
+      produce_name: string;
+      variety: string | null;
+      available_quantity: string;
+      unit_price: string;
+      unit: string;
+      farm_location: string;
+      status: string;
+      currency: string;
+      delivery_options: DeliveryOption[];
+    }>>`
+      SELECT id, seller_id, produce_name, variety,
+             available_quantity, unit_price, unit,
+             farm_location, status, currency, delivery_options
       FROM "ProduceListing"
       WHERE id = ${listingId}
         AND status IN ('ACTIVE', 'PARTIALLY_SOLD')
       FOR UPDATE
     `;
 
-    if (listings.length === 0) {
-      throw new ListingNotFoundError(listingId);
-    }
+    if (listings.length === 0) throw new ListingNotFoundError(listingId);
 
-    const listing = listings[0];
+    const listing      = listings[0];
     const availableQty = parseFloat(listing.available_quantity);
-    const unitPrice = parseFloat(listing.unit_price);
-    const currency = listing.currency;
+    const unitPrice    = parseFloat(listing.unit_price);
+    const currency     = listing.currency;
 
-    // 2. Quantity check
     if (quantityKg > availableQty) {
       throw new InsufficientInventoryError(availableQty, quantityKg);
     }
 
-    // 3. Validate that listing supports the requested delivery option
     if (!listing.delivery_options.includes(deliveryOption)) {
       throw new InvalidDeliveryOptionError(
-        `Listing does not support delivery option: ${deliveryOption}. ` +
-        `Available: ${listing.delivery_options.join(", ")}.`
+        `Listing does not support ${deliveryOption}. Available: ${listing.delivery_options.join(", ")}.`
       );
     }
 
-    // 4. Calculate financials
     const subtotalAmount = parseFloat((quantityKg * unitPrice).toFixed(2));
-    const deliveryFee = parseFloat(
-      (
-        deliveryOption === DeliveryOption.DELIVERED
-          ? (deliveryFeeOverride ?? 0)
-          : 0
-      ).toFixed(2)
+    const deliveryFee    = parseFloat(
+      (deliveryOption === DeliveryOption.DELIVERED ? (deliveryFeeOverride ?? 0) : 0).toFixed(2)
     );
-    const totalAmount = parseFloat((subtotalAmount + deliveryFee).toFixed(2));
+    const totalAmount    = parseFloat((subtotalAmount + deliveryFee).toFixed(2));
+    const newAvailableQty = parseFloat((availableQty - quantityKg).toFixed(3));
+    const newListingStatus = newAvailableQty <= 0
+      ? ListingStatus.SOLD_OUT
+      : ListingStatus.PARTIALLY_SOLD;
 
-    // 5. Compute new available quantity and next listing status
-    const newAvailableQty = parseFloat(
-      (availableQty - quantityKg).toFixed(3)
-    );
-    const newListingStatus: ListingStatus =
-      newAvailableQty <= 0
-        ? ListingStatus.SOLD_OUT
-        : ListingStatus.PARTIALLY_SOLD;
-
-    // 6. Decrement available_quantity + update listing status
     await tx.produceListing.update({
       where: { id: listingId },
-      data: {
-        availableQuantity: newAvailableQty,
-        status: newListingStatus,
-      },
+      data:  { availableQuantity: newAvailableQty, status: newListingStatus },
+      select: { id: true }, // minimal select — we only need confirmation
     });
 
-    // 7. Create the Order record
     const order = await tx.order.create({
       data: {
         buyerId,
-        status: OrderStatus.CONFIRMED,
-        paymentStatus: PaymentStatus.UNPAID,
-        paymentMethod: paymentMethod ?? null,
+        status:         OrderStatus.CONFIRMED,
+        paymentStatus:  PaymentStatus.UNPAID,
+        paymentMethod:  paymentMethod ?? null,
         subtotalAmount,
         deliveryFee,
         discountAmount: 0,
         totalAmount,
         currency,
         deliveryOption,
-        deliveryAddress: deliveryAddress ?? null,
-        deliveryNotes: deliveryNotes ?? null,
-        confirmedAt: new Date(),
+        deliveryAddress:  deliveryAddress ?? null,
+        deliveryNotes:    deliveryNotes ?? null,
+        confirmedAt:      new Date(),
       },
+      select: { id: true, orderNumber: true },
     });
 
-    // 8. Create the OrderItem — snapshot listing details at purchase time
     await tx.orderItem.create({
       data: {
-        orderId: order.id,
+        orderId:           order.id,
         listingId,
-        produceName: listing.produce_name,
-        variety: listing.variety ?? null,
-        unit: listing.unit as "KG" | "TON",
-        quantityOrdered: quantityKg,
-        unitPriceAtOrder: unitPrice,
-        lineTotal: subtotalAmount,
+        produceName:       listing.produce_name,
+        variety:           listing.variety ?? null,
+        unit:              listing.unit as "KG" | "TON",
+        quantityOrdered:   quantityKg,
+        unitPriceAtOrder:  unitPrice,
+        lineTotal:         subtotalAmount,
         quantityDelivered: 0,
-        isFulfilled: false,
-        farmLocation: listing.farm_location,
+        isFulfilled:       false,
+        farmLocation:      listing.farm_location,
       },
+      select: { id: true },
     });
 
-    return {
-      order,
-      listing,
-      newAvailableQty,
-      newListingStatus,
-      subtotalAmount,
-      deliveryFee,
-      totalAmount,
-      currency,
-    };
-  }); // ── END $transaction
-
-  // ─────────────────────────────────────────────────────────
-  // POST-TRANSACTION: contact disclosure + dispatch + SMS
-  // All fire AFTER commit — failures never roll back the order.
-  // ─────────────────────────────────────────────────────────
-
-  // Fetch seller phone for SMS notification only
-  const seller = await prisma.user.findUnique({
-    where: { id: result.listing.seller_id },
-    select: { phone: true },
+    return { order, listing, newAvailableQty, newListingStatus,
+             subtotalAmount, deliveryFee, totalAmount, currency };
   });
 
-  // ── DELIVERY: create internal dispatch task (hidden from buyer)
+  // ── POST-TRANSACTION: dispatch + contact disclosure ───────
+
   let pickupContact: PlaceOrderResult["pickupContact"] = null;
 
   if (deliveryOption === DeliveryOption.DELIVERED) {
-    // Fire-and-forget dispatch creation — failure is logged, not thrown
-    createDeliveryDispatch(result.order.id).catch((err) =>
+    createDeliveryDispatch(result.order.id, db).catch((err) =>
       console.error("[Dispatch] Failed to create delivery task:", err)
     );
-    // pickupContact stays null — buyer never sees farmer details for delivery
   }
 
-  // ── SELF_PICKUP: disclose farmer contact to this buyer only
   if (deliveryOption === DeliveryOption.SELF_PICKUP) {
-    const disclosure = await getPickupContactForBuyer(
-      result.order.id,
-      buyerId
-    );
+    const disclosure = await getPickupContactForBuyer(result.order.id, buyerId, db);
     if (disclosure) {
       pickupContact = {
         pickupLocation: disclosure.pickupLocation,
@@ -336,27 +238,31 @@ export async function placeOrder(
     }
   }
 
-  // ── SMS notifications (concurrent, non-blocking)
+  // ── SMS notifications (post-commit, non-blocking) ─────────
+
+  const seller = await db.user.findUnique({
+    where:  { id: result.listing.seller_id },
+    select: { phone: true },
+  });
+
   await Promise.allSettled([
-    notifyBuyer(
-      buyer.phone,
-      result.order.orderNumber,
-      result.listing.produce_name,
+    sms.notifyBuyer({
+      phone:       buyer.phone,
+      orderNumber: result.order.orderNumber,
+      produceName: result.listing.produce_name,
       quantityKg,
-      result.totalAmount,
-      result.currency
-    ),
-    seller
-      ? notifyFarmer(
-          seller.phone,
-          result.order.orderNumber,
-          result.listing.produce_name,
-          quantityKg,
-          result.subtotalAmount,
-          result.currency,
-          result.newListingStatus === ListingStatus.SOLD_OUT
-        )
-      : Promise.resolve(),
+      totalAmount: result.totalAmount,
+      currency:    result.currency,
+    }),
+    seller ? sms.notifyFarmer({
+      phone:       seller.phone,
+      orderNumber: result.order.orderNumber,
+      produceName: result.listing.produce_name,
+      quantityKg,
+      totalAmount: result.subtotalAmount,
+      currency:    result.currency,
+      isSoldOut:   result.newListingStatus === ListingStatus.SOLD_OUT,
+    }) : Promise.resolve(),
   ]);
 
   return {
@@ -369,46 +275,66 @@ export async function placeOrder(
     listingStatus:          result.newListingStatus,
     availableQuantityAfter: result.newAvailableQty,
     fulfillment:            deliveryOption,
-    pickupContact,          // null for DELIVERED, populated for SELF_PICKUP
+    pickupContact,
   };
 }
 
 // ─────────────────────────────────────────────────────────────
-// Fetch a single order with all its items (for GET /orders/:id)
+// getOrderById
 // ─────────────────────────────────────────────────────────────
 
-export async function getOrderById(orderId: string, buyerId: string) {
-  const order = await prisma.order.findFirst({
+export async function getOrderById(
+  orderId: string,
+  buyerId: string,
+  db: PrismaClient
+) {
+  return db.order.findFirst({
     where: { id: orderId, buyerId },
-    include: {
-      orderItems: true,
-      payments: true,
-      delivery: true,
+    select: {
+      ...ORDER_SELECT,
+      orderItems: { select: ORDER_ITEM_SELECT },
+      payments: {
+        select: {
+          id: true, amount: true, currency: true,
+          method: true, status: true, paidAt: true,
+        },
+      },
+      delivery: {
+        select: {
+          id: true, status: true, scheduledPickupAt: true,
+          estimatedDeliveryAt: true, deliveredAt: true,
+          // Deliberately excluded: pickupAddress, farmerPhone (logistics-only)
+        },
+      },
     },
   });
-  return order; // null if not found or doesn't belong to buyer
 }
 
 // ─────────────────────────────────────────────────────────────
-// List all orders for a buyer (for GET /orders)
+// getBuyerOrders — paginated list
 // ─────────────────────────────────────────────────────────────
 
 export async function getBuyerOrders(
   buyerId: string,
+  db: PrismaClient,
   page = 1,
-  pageSize = 20
+  pageSize = DEFAULT_PAGE_SIZE
 ) {
-  const skip = (page - 1) * pageSize;
+  const take = Math.min(pageSize, MAX_PAGE_SIZE);
+  const skip = (Math.max(1, page) - 1) * take;
 
   const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where: { buyerId },
-      include: { orderItems: true },
+    db.order.findMany({
+      where:   { buyerId },
+      select: {
+        ...ORDER_SELECT,
+        orderItems: { select: ORDER_ITEM_SELECT },
+      },
       orderBy: { placedAt: "desc" },
       skip,
-      take: pageSize,
+      take,
     }),
-    prisma.order.count({ where: { buyerId } }),
+    db.order.count({ where: { buyerId } }),
   ]);
 
   return {
@@ -416,8 +342,8 @@ export async function getBuyerOrders(
     pagination: {
       total,
       page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      pageSize: take,
+      totalPages: Math.ceil(total / take),
     },
   };
 }

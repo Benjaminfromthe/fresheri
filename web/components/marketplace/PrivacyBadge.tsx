@@ -2,13 +2,15 @@
 
 import { ShieldCheck } from "lucide-react";
 
+import { PRIVACY_BADGE_MESSAGE } from "@/lib/constants";
+
 interface PrivacyBadgeProps {
   message?: string;
   compact?: boolean;
 }
 
 export default function PrivacyBadge({
-  message = "Farmer identity and exact pickup address revealed upon confirming pickup choice.",
+  message = PRIVACY_BADGE_MESSAGE,
   compact = false,
 }: PrivacyBadgeProps) {
   if (compact) {

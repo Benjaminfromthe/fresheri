@@ -73,7 +73,6 @@ export interface CheckoutTotals {
   currency: string;
 }
 
-export const BASE_DELIVERY_FEE = 500; // KES/RWF flat base fee
 
 // ── Post-order result ────────────────────────────────────────
 

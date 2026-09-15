@@ -12,8 +12,8 @@
 //     and a verified flag.
 // ─────────────────────────────────────────────────────────────
 
-import { DeliveryOption, ListingStatus, Prisma } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { DeliveryOption, ListingStatus, Prisma, PrismaClient } from "@prisma/client";
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/config";
 
 // ─────────────────────────────────────────────────────────────
 // Public-safe listing shape — NO farmer PII
@@ -171,7 +171,10 @@ export interface ListingFilters {
 // Returns only privacy-safe fields; never leaks farmer PII.
 // ─────────────────────────────────────────────────────────────
 
-export async function getPublicListings(filters: ListingFilters = {}) {
+export async function getPublicListings(
+  filters: ListingFilters = {},
+  db: PrismaClient
+) {
   const {
     category,
     minAvailableQty,
@@ -179,11 +182,11 @@ export async function getPublicListings(filters: ListingFilters = {}) {
     fulfillment,
     search,
     page     = 1,
-    pageSize = 20,
+    pageSize = DEFAULT_PAGE_SIZE,
   } = filters;
 
-  const skip = (page - 1) * Math.min(pageSize, 100);
-  const take = Math.min(pageSize, 100);
+  const take = Math.min(pageSize, MAX_PAGE_SIZE);
+  const skip = (Math.max(1, page) - 1) * take;
 
   // Build where clause — only ACTIVE and PARTIALLY_SOLD listings are public
   const where: Prisma.ProduceListingWhereInput = {
@@ -216,14 +219,14 @@ export async function getPublicListings(filters: ListingFilters = {}) {
   }
 
   const [rows, total] = await Promise.all([
-    prisma.produceListing.findMany({
+    db.produceListing.findMany({
       where,
       select: PUBLIC_LISTING_SELECT,
       orderBy: { harvestDate: "desc" },
       skip,
       take,
     }),
-    prisma.produceListing.count({ where }),
+    db.produceListing.count({ where }),
   ]);
 
   return {
@@ -242,9 +245,10 @@ export async function getPublicListings(filters: ListingFilters = {}) {
 // ─────────────────────────────────────────────────────────────
 
 export async function getPublicListingById(
-  id: string
+  id: string,
+  db: PrismaClient
 ): Promise<PublicListing | null> {
-  const raw = await prisma.produceListing.findFirst({
+  const raw = await db.produceListing.findFirst({
     where: {
       id,
       status: { in: [ListingStatus.ACTIVE, ListingStatus.PARTIALLY_SOLD] },
@@ -262,8 +266,8 @@ export async function getPublicListingById(
 // seller already owns.
 // ─────────────────────────────────────────────────────────────
 
-export async function getSellerListings(sellerId: string) {
-  return prisma.produceListing.findMany({
+export async function getSellerListings(sellerId: string, db: PrismaClient) {
+  return db.produceListing.findMany({
     where: { sellerId },
     select: {
       id:                true,

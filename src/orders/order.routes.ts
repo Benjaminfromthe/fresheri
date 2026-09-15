@@ -1,36 +1,30 @@
 import { Router } from "express";
-import {
-  createOrder,
-  listOrders,
-  getOrder,
-  getPickupContact,
-} from "./order.controller";
-import {
-  resolveCallerMiddleware,
-  requireRoles,
-  BUYER_ROLES,
-} from "../middleware/rbac";
+import { PrismaClient } from "@prisma/client";
+import { createOrderController } from "./order.controller";
+import { resolveCallerMiddleware, requireRoles } from "../middleware/rbac";
+import { BUYER_ROLES } from "../constants/roles";
+import { SmsService } from "../lib/sms";
 
-const router = Router();
+export function createOrderRouter(db: PrismaClient, sms: SmsService): Router {
+  const router = Router();
+  const ctrl = createOrderController(db, sms);
 
-/**
- * POST  /orders                    — place a new order (buyer only)
- * GET   /orders                    — list buyer orders
- * GET   /orders/:id                — get a single order
- * GET   /orders/:id/pickup-contact — disclose farmer contact for SELF_PICKUP
- *                                    (auth required, buyer only, CONFIRMED orders)
- */
+  /**
+   * GET  /orders/:id/pickup-contact — buyer + auth required (before /:id)
+   * POST /orders                    — place order
+   * GET  /orders                    — list buyer orders
+   * GET  /orders/:id                — single order
+   */
+  router.get(
+    "/:id/pickup-contact",
+    resolveCallerMiddleware(db),
+    requireRoles(...BUYER_ROLES),
+    ctrl.getPickupContact
+  );
 
-// Pickup contact — must come BEFORE /:id to avoid param capture
-router.get(
-  "/:id/pickup-contact",
-  resolveCallerMiddleware,
-  requireRoles(...BUYER_ROLES),
-  getPickupContact
-);
+  router.post("/",    ctrl.createOrder);
+  router.get("/",     ctrl.listOrders);
+  router.get("/:id",  ctrl.getOrder);
 
-router.post("/", createOrder);
-router.get("/",  listOrders);
-router.get("/:id", getOrder);
-
-export default router;
+  return router;
+}

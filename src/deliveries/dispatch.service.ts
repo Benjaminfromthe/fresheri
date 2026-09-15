@@ -1,66 +1,55 @@
 // ─────────────────────────────────────────────────────────────
-// Delivery Dispatch Service
+// Delivery Dispatch Service — Business Logic Layer
 //
-// When a buyer selects DELIVERED fulfillment:
-//   • Farmer contact details are NEVER returned to the buyer.
-//   • A Delivery record is created linking the order to a
-//     logistics partner (or left unassigned for manual dispatch).
-//   • The dispatch task contains the farmer's pickup location
-//     visible only to the logistics partner / internal agent.
-//
-// When a buyer selects SELF_PICKUP and the order is CONFIRMED:
-//   • The farmer's pickup location + direct contact phone are
-//     returned exclusively to that specific buyer for that order.
-//   • This contact is fetched via a dedicated function that
-//     enforces order ownership before disclosing anything.
+// Architecture compliance:
+//   ✅ Receives PrismaClient as injected dependency
+//   ✅ All Prisma queries use explicit `select` blocks
+//   ✅ Domain errors from src/constants/errors.ts
+//   ✅ No singleton prisma import
 // ─────────────────────────────────────────────────────────────
 
-import { DeliveryStatus } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { PrismaClient, DeliveryStatus, OrderStatus } from "@prisma/client";
+import { OrderNotFoundError } from "../constants/errors";
 
-// ─────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────
+// ── Output types ─────────────────────────────────────────────
 
-/** Returned to the buyer ONLY for SELF_PICKUP confirmed orders */
+/** Returned to buyer ONLY for SELF_PICKUP confirmed orders */
 export interface PickupContactDisclosure {
-  orderId:       string;
-  orderNumber:   string;
-  produceName:   string;
-  quantityKg:    number;
-  pickupLocation: string;       // exact farm address
-  farmerContact:  string;       // farmer phone — disclosed post-order only
-  farmerName:     string;       // cooperative/farm name only (no surname)
+  orderId:        string;
+  orderNumber:    string;
+  produceName:    string;
+  quantityKg:     number;
+  pickupLocation: string;
+  farmerContact:  string;   // disclosed post-order, SELF_PICKUP only
+  farmerName:     string;   // cooperative/farm name — never personal surname
   note:           string;
 }
 
-/** Internal-only dispatch task — never sent to the buyer */
+/** Internal-only dispatch task — never sent to buyer */
 export interface DeliveryDispatchTask {
-  deliveryId:         string;
-  orderId:            string;
-  orderNumber:        string;
-  produceName:        string;
-  quantityKg:         number;
-  pickupAddress:      string;   // full farm address for logistics driver
-  deliveryAddress:    string;   // buyer's delivery address
-  farmerPhone:        string;   // for driver coordination only
-  status:             DeliveryStatus;
-  scheduledPickupAt:  Date | null;
+  deliveryId:        string;
+  orderId:           string;
+  orderNumber:       string;
+  produceName:       string;
+  quantityKg:        number;
+  pickupAddress:     string;
+  deliveryAddress:   string;
+  farmerPhone:       string;
+  status:            DeliveryStatus;
+  scheduledPickupAt: Date | null;
 }
 
 // ─────────────────────────────────────────────────────────────
 // createDeliveryDispatch
-// Called after a DELIVERED order is confirmed.
-// Creates a Delivery record for the logistics partner.
-// Returns the internal dispatch task (NOT sent to buyer).
+// Creates Delivery record for logistics partner.
+// Returns internal dispatch task — NOT returned to buyer.
 // ─────────────────────────────────────────────────────────────
 
 export async function createDeliveryDispatch(
-  orderId: string
+  orderId: string,
+  db: PrismaClient
 ): Promise<DeliveryDispatchTask> {
-  // Fetch the order + items + seller details
-  // Explicit select — only pull what dispatch needs
-  const order = await prisma.order.findUnique({
+  const order = await db.order.findUnique({
     where: { id: orderId },
     select: {
       id:              true,
@@ -68,23 +57,16 @@ export async function createDeliveryDispatch(
       deliveryAddress: true,
       orderItems: {
         select: {
-          produceName:    true,
+          produceName:     true,
           quantityOrdered: true,
-          farmLocation:   true,
+          farmLocation:    true,
           listing: {
             select: {
               seller: {
                 select: {
-                  phone: true,            // needed for driver coordination
-                  farmerProfile: {
-                    select: {
-                      farmLocation: true,
-                      farmName:     true,
-                    },
-                  },
-                  cooperativeProfile: {
-                    select: { cooperativeName: true },
-                  },
+                  phone: true,
+                  farmerProfile:  { select: { farmLocation: true, farmName: true } },
+                  cooperativeProfile: { select: { cooperativeName: true } },
                 },
               },
             },
@@ -94,20 +76,16 @@ export async function createDeliveryDispatch(
     },
   });
 
-  if (!order) throw new Error(`Order ${orderId} not found.`);
+  if (!order) throw new OrderNotFoundError(orderId);
   if (!order.deliveryAddress) {
-    throw new Error(`Order ${orderId} has no delivery address.`);
+    throw new OrderNotFoundError(`Order ${orderId} has no delivery address.`);
   }
 
-  const item         = order.orderItems[0];
-  const seller       = item.listing.seller;
-  const farmerPhone  = seller.phone;
-  const pickupAddress =
-    seller.farmerProfile?.farmLocation ??
-    item.farmLocation;
+  const item          = order.orderItems[0];
+  const seller        = item.listing.seller;
+  const pickupAddress = seller.farmerProfile?.farmLocation ?? item.farmLocation;
 
-  // Create the Delivery record — unassigned until a logistics partner picks it up
-  const delivery = await prisma.delivery.create({
+  const delivery = await db.delivery.create({
     data: {
       orderId:         order.id,
       status:          DeliveryStatus.NOT_ASSIGNED,
@@ -115,11 +93,7 @@ export async function createDeliveryDispatch(
       deliveryAddress: order.deliveryAddress,
       scheduledPickupAt: null,
     },
-    select: {
-      id:               true,
-      status:           true,
-      scheduledPickupAt: true,
-    },
+    select: { id: true, status: true, scheduledPickupAt: true },
   });
 
   return {
@@ -130,7 +104,7 @@ export async function createDeliveryDispatch(
     quantityKg:        Number(item.quantityOrdered),
     pickupAddress,
     deliveryAddress:   order.deliveryAddress,
-    farmerPhone,
+    farmerPhone:       seller.phone,
     status:            delivery.status,
     scheduledPickupAt: delivery.scheduledPickupAt,
   };
@@ -138,31 +112,34 @@ export async function createDeliveryDispatch(
 
 // ─────────────────────────────────────────────────────────────
 // getPickupContactForBuyer
-// Discloses farmer pickup details to a buyer ONLY when:
-//   1. The order belongs to that buyer (ownership check)
-//   2. The order's fulfillment option is SELF_PICKUP
-//   3. The order status is CONFIRMED or later
-//
-// Any violation returns null — caller sends 403.
+// Three-gate check before any PII is disclosed:
+//   1. Order belongs to this buyer
+//   2. Fulfillment is SELF_PICKUP
+//   3. Status is CONFIRMED or later
 // ─────────────────────────────────────────────────────────────
 
 export async function getPickupContactForBuyer(
   orderId: string,
-  buyerId: string
+  buyerId: string,
+  db: PrismaClient
 ): Promise<PickupContactDisclosure | null> {
-  const order = await prisma.order.findFirst({
+  const order = await db.order.findFirst({
     where: {
       id:             orderId,
-      buyerId,                             // ownership
-      deliveryOption: "SELF_PICKUP",       // fulfillment type
-      status:         {
-        in: ["CONFIRMED", "PROCESSING", "DISPATCHED", "DELIVERED"],
+      buyerId,
+      deliveryOption: "SELF_PICKUP",
+      status: {
+        in: [
+          OrderStatus.CONFIRMED,
+          OrderStatus.PROCESSING,
+          OrderStatus.DISPATCHED,
+          OrderStatus.DELIVERED,
+        ],
       },
     },
     select: {
       id:          true,
       orderNumber: true,
-      status:      true,
       orderItems: {
         select: {
           produceName:     true,
@@ -171,18 +148,10 @@ export async function getPickupContactForBuyer(
           listing: {
             select: {
               seller: {
-                // Explicit select — phone disclosed ONLY here, post-order
                 select: {
                   phone: true,
-                  farmerProfile: {
-                    select: {
-                      farmLocation: true,
-                      farmName:     true,
-                    },
-                  },
-                  cooperativeProfile: {
-                    select: { cooperativeName: true },
-                  },
+                  farmerProfile:      { select: { farmLocation: true, farmName: true } },
+                  cooperativeProfile: { select: { cooperativeName: true } },
                 },
               },
             },
@@ -192,17 +161,14 @@ export async function getPickupContactForBuyer(
     },
   });
 
-  // Order not found, wrong buyer, wrong fulfillment type, or wrong status
   if (!order || order.orderItems.length === 0) return null;
 
   const item   = order.orderItems[0];
   const seller = item.listing.seller;
 
   const pickupLocation =
-    seller.farmerProfile?.farmLocation ??
-    item.farmLocation;
+    seller.farmerProfile?.farmLocation ?? item.farmLocation;
 
-  // Display name — never a personal surname
   const farmerName =
     seller.cooperativeProfile?.cooperativeName ??
     seller.farmerProfile?.farmName ??
@@ -214,7 +180,7 @@ export async function getPickupContactForBuyer(
     produceName:    item.produceName,
     quantityKg:     Number(item.quantityOrdered),
     pickupLocation,
-    farmerContact:  seller.phone,   // ← only disclosed here, post-order, self-pickup only
+    farmerContact:  seller.phone,
     farmerName,
     note:
       "This contact is shared exclusively for pickup coordination. " +

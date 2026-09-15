@@ -13,10 +13,10 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { BASE_DELIVERY_FEE, PICKUP_LOCK_MESSAGE } from "@/lib/constants";
 import { ProduceListing, DeliveryOption } from "@/types/marketplace";
 import PrivacyBadge from "./PrivacyBadge";
 import FulfillmentToggle from "./FulfillmentToggle";
-import { BASE_DELIVERY_FEE } from "@/types/marketplace";
 
 interface ProduceCardProps {
   listing: ProduceListing;
@@ -202,8 +202,7 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
             {/* SELF_PICKUP hint */}
             {fulfillment === "SELF_PICKUP" && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
-                🔒 Exact pickup location and contact details will be unlocked
-                upon order confirmation.
+                🔒 {PICKUP_LOCK_MESSAGE}
               </p>
             )}
 

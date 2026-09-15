@@ -1,118 +1,124 @@
 // ─────────────────────────────────────────────────────────────
-// Africa's Talking SMS client wrapper
-// Typed, singleton, lazy-initialised for serverless safety
+// SMS Service — Injectable Interface + Singleton Adapter
+//
+// Architecture:
+//   SmsService interface defines the contract.
+//   AtSmsService implements it using Africa's Talking.
+//   createSmsService() is the factory injected into services.
+//   The singleton `defaultSmsService` is used in api/index.ts
+//   bootstrap only — never imported directly in business logic.
 // ─────────────────────────────────────────────────────────────
 
-export interface SMSResult {
+import { SMS_MAX_BODY_LENGTH } from "../constants/config";
+
+// ── Public interface (injectable contract) ───────────────────
+
+export interface SmsService {
+  send(to: string[], message: string): Promise<SmsResponse | null>;
+  notifyBuyer(params: BuyerNotificationParams): Promise<void>;
+  notifyFarmer(params: FarmerNotificationParams): Promise<void>;
+}
+
+export interface SmsResult {
   messageId: string;
   status: string;
   number: string;
   cost: string;
 }
 
-export interface SMSResponse {
+export interface SmsResponse {
   SMSMessageData: {
     Message: string;
-    Recipients: SMSResult[];
+    Recipients: SmsResult[];
   };
 }
 
-// Lazy singleton — initialised on first use so env vars are
-// guaranteed to be present (safe for both local and Vercel)
-let _smsClient: ReturnType<ReturnType<typeof require>["SMS"]> | null = null;
-
-function getSmsClient() {
-  if (_smsClient) return _smsClient;
-
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const AfricasTalking = require("africastalking");
-  const at = AfricasTalking({
-    apiKey:   process.env.AT_API_KEY   ?? "",
-    username: process.env.AT_USERNAME  ?? "sandbox",
-  });
-  _smsClient = at.SMS;
-  return _smsClient;
+export interface BuyerNotificationParams {
+  phone: string;
+  orderNumber: string;
+  produceName: string;
+  quantityKg: number;
+  totalAmount: number;
+  currency: string;
 }
 
-/**
- * Send an SMS to one or more phone numbers.
- *
- * @param to     - Array of E.164 numbers, e.g. ["+254712345678"]
- * @param message - Plain-text message body (160 chars per SMS segment)
- * @returns      Resolved AT response or null if the send fails (non-throwing)
- */
-export async function sendSMS(
-  to: string[],
-  message: string
-): Promise<SMSResponse | null> {
-  const body = message.slice(0, 459);
+export interface FarmerNotificationParams {
+  phone: string;
+  orderNumber: string;
+  produceName: string;
+  quantityKg: number;
+  totalAmount: number;
+  currency: string;
+  isSoldOut: boolean;
+}
 
-  try {
-    const smsClient = getSmsClient();
-    const response: SMSResponse = await smsClient.send({
-      to,
-      message: body,
-      enqueue: true,
+// ── Africa's Talking implementation ──────────────────────────
+
+class AtSmsService implements SmsService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private client: any = null;
+
+  private getClient() {
+    if (this.client) return this.client;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const AfricasTalking = require("africastalking");
+    const at = AfricasTalking({
+      apiKey:   process.env.AT_API_KEY  ?? "",
+      username: process.env.AT_USERNAME ?? "sandbox",
     });
+    this.client = at.SMS;
+    return this.client;
+  }
 
-    const recipients = response.SMSMessageData?.Recipients ?? [];
-    const failed = recipients.filter((r) => r.status !== "Success");
+  async send(to: string[], message: string): Promise<SmsResponse | null> {
+    const body = message.slice(0, SMS_MAX_BODY_LENGTH);
+    try {
+      const response: SmsResponse = await this.getClient().send({
+        to,
+        message: body,
+        enqueue: true,
+      });
 
-    if (failed.length > 0) {
-      console.warn(
-        "[SMS] Some recipients failed:",
-        failed.map((r) => `${r.number} → ${r.status}`)
+      const failed = (response.SMSMessageData?.Recipients ?? []).filter(
+        (r: SmsResult) => r.status !== "Success"
       );
-    }
+      if (failed.length > 0) {
+        console.warn("[SMS] Failed recipients:", failed.map((r: SmsResult) => `${r.number} → ${r.status}`));
+      }
 
-    return response;
-  } catch (err) {
-    // SMS failure must NEVER roll back an order — log and continue
-    console.error("[SMS] Send error:", err);
-    return null;
+      return response;
+    } catch (err) {
+      // SMS failure must NEVER roll back an order
+      console.error("[SMS] Send error:", err);
+      return null;
+    }
+  }
+
+  async notifyBuyer(p: BuyerNotificationParams): Promise<void> {
+    const message =
+      `Fresheri: Order ${p.orderNumber} confirmed!\n` +
+      `${p.quantityKg}kg of ${p.produceName} @ ${p.currency} ${p.totalAmount.toFixed(2)}.\n` +
+      `We will update you on delivery. Thank you.`;
+    await this.send([p.phone], message);
+  }
+
+  async notifyFarmer(p: FarmerNotificationParams): Promise<void> {
+    const soldOut = p.isSoldOut ? "\nYour listing is now SOLD OUT." : "";
+    const message =
+      `Fresheri: New order ${p.orderNumber}!\n` +
+      `A buyer purchased ${p.quantityKg}kg of ${p.produceName}.\n` +
+      `You will receive ${p.currency} ${p.totalAmount.toFixed(2)}.` +
+      soldOut;
+    await this.send([p.phone], message);
   }
 }
 
-/**
- * Notify a buyer that their order was placed successfully.
- */
-export async function notifyBuyer(
-  phone: string,
-  orderNumber: string,
-  produceName: string,
-  quantityKg: number,
-  totalAmount: number,
-  currency: string
-): Promise<void> {
-  const message =
-    `Fresheri: Order ${orderNumber} confirmed!\n` +
-    `${quantityKg}kg of ${produceName} @ ${currency} ${totalAmount.toFixed(2)}.\n` +
-    `We will update you on delivery. Thank you.`;
+// ── Factory — used in DI wiring (api/index.ts bootstrap) ─────
 
-  await sendSMS([phone], message);
+export function createSmsService(): SmsService {
+  return new AtSmsService();
 }
 
-/**
- * Notify a farmer that a buyer has purchased from their listing.
- */
-export async function notifyFarmer(
-  phone: string,
-  orderNumber: string,
-  produceName: string,
-  quantityKg: number,
-  totalAmount: number,
-  currency: string,
-  isSoldOut: boolean
-): Promise<void> {
-  const soldOutNote = isSoldOut
-    ? "\nYour listing is now SOLD OUT."
-    : "";
+// ── Singleton adapter — ONLY imported in api/index.ts ────────
 
-  const message =
-    `Fresheri: New order ${orderNumber}!\n` +
-    `A buyer purchased ${quantityKg}kg of ${produceName}.\n` +
-    `You will receive ${currency} ${totalAmount.toFixed(2)}.` +
-    soldOutNote;
-
-  await sendSMS([phone], message);
-}
+export const defaultSmsService: SmsService = createSmsService();
