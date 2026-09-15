@@ -14,6 +14,7 @@ import FilterSidebar    from "@/components/marketplace/FilterSidebar";
 import ProduceCard      from "@/components/marketplace/ProduceCard";
 import CheckoutModal    from "@/components/marketplace/CheckoutModal";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { Link }         from "@/i18n/navigation";
 
 import { MOCK_LISTINGS }    from "@/lib/mock-listings";
 import { placeOrderBatch }  from "@/lib/api-client";
@@ -150,6 +151,14 @@ export default function MarketplacePage() {
           <div className="flex items-center gap-2 shrink-0">
             {/* Language switcher */}
             <LanguageSwitcher />
+
+            {/* Sign in link */}
+            <Link
+              href="/auth"
+              className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-green-700 border border-gray-200 hover:border-green-400 px-3 py-1.5 rounded-xl transition-colors"
+            >
+              {tn("signIn")}
+            </Link>
 
             {/* Mobile filter */}
             <button
