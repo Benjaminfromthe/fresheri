@@ -1,0 +1,174 @@
+{
+  "common": {
+    "appName": "Fresheri",
+    "appTagline": "Isoko",
+    "loading": "Gutegereza…",
+    "save": "Bika",
+    "cancel": "Reka",
+    "back": "Subira",
+    "confirm": "Emeza",
+    "close": "Funga",
+    "search": "Shakisha",
+    "reset": "Subiza",
+    "any": "Icyo cyose",
+    "free": "Ubuntu",
+    "organic": "Kamere",
+    "verified": "Yemejwe",
+    "currency": "RWF",
+    "perKg": "/ kg",
+    "perTon": "/ toni",
+    "kgUnit": "kg",
+    "tonUnit": "t",
+    "minLabel": "Nibura",
+    "stepLabel": "intambwe",
+    "customKg": "Andika kg…",
+    "privacyProtected": "Ibanga rirarinzwe",
+    "continueShoppingBtn": "Komeza Gura",
+    "soldOut": "BIRANGIYE",
+    "partialStock": "Bisigaye bike"
+  },
+
+  "navigation": {
+    "marketplace": "Isoko",
+    "openFilters": "Fungura igenamiterere",
+    "orderCart": "Gutumiza",
+    "cartAriaLabel": "Agasanduku — ibitondo {count}"
+  },
+
+  "language": {
+    "en": "Icyongereza",
+    "rw": "Ikinyarwanda",
+    "fr": "Igifaransa",
+    "selectLanguage": "Hitamo ururimi"
+  },
+
+  "roles": {
+    "FARMER": "Umuhinzi",
+    "COOPERATIVE": "Ikoperative",
+    "COMMERCIAL_BUYER": "Uguzi w'Ubucuruzi",
+    "HOUSEHOLD_BUYER": "Uguzi w'Urugo",
+    "LOGISTICS_PARTNER": "Umunyamabuye",
+    "ADMIN": "Umuyobozi"
+  },
+
+  "auth": {
+    "signIn": "Injira",
+    "signOut": "Sohoka",
+    "signUp": "Iyandikishe",
+    "email": "Imeyili",
+    "phone": "Telefoni",
+    "password": "Ijambo ry'ibanga",
+    "forgotPassword": "Wibagiwe ijambo ry'ibanga?",
+    "noAccount": "Nufite konti?",
+    "hasAccount": "Usanganywe konti?"
+  },
+
+  "marketplace": {
+    "heroTitle": "Isoko ry'Ubuhinzi Mu Bwinshi",
+    "heroSubtitle": "Gura neza mu binyabuzima by'abahinzi. Ibanga rirarinzwe — ubuvanganzo bw'umuhinzi bwerekanywa nyuma yo guhitamo uburyo bwo gutwara.",
+    "activeListings": "Ibyatanzwe",
+    "cooperatives": "Amakoperative",
+    "cropCategories": "Ubwoko bw'Ibitera",
+    "listingsAvailable": "Ibitondo {count} biraboneka",
+    "noListingsTitle": "Nta bitondo bihuye n'igenamiterere ryawe",
+    "noListingsClear": "Siba igenamiterere ryose",
+    "searchPlaceholder": "Shakisha umusaruro, koperative, akarere…",
+    "harvestedOn": "Harvested {date}",
+    "remaining": "{qty} bisigaye",
+    "addToOrderPickup": "Ongeraho · Gufata",
+    "addToOrderDelivery": "Ongeraho · Gutumiza",
+    "addedConfirmation": "Byongewe!",
+    "minQtyHint": "Nibura {min} kg · intambwe {step} kg",
+    "inclDelivery": "hamwe n'ubutumire",
+    "cooperativeIn": "Ikoperative y'Abahinzi i {region}",
+    "listingFound": "Ibitonbo {count} bibonetse",
+    "searchResultsFor": "Ibisubizo bya \"{query}\""
+  },
+
+  "filters": {
+    "title": "Igenamiterere",
+    "reset": "Subiza",
+    "cropCategory": "Ubwoko bw'Ibitera",
+    "allCategories": "Ubwoko Bwose",
+    "minAvailableQty": "Umubare Muto Uraboneka",
+    "location": "Akarere",
+    "allLocations": "Aho Hose",
+    "fulfillment": "Uburyo bwo Gutwara",
+    "fulfillmentAll": "Uburyo Bwose",
+    "fulfillmentPickup": "Gufata Gusa",
+    "fulfillmentDelivery": "Gutumiza Gusa",
+    "customKgPlaceholder": "Andika kg…"
+  },
+
+  "fulfillment": {
+    "method": "Uburyo bwo Gutwara",
+    "selfPickup": "Gufata mu Koperative",
+    "selfPickupCompact": "Gufata",
+    "selfPickupDescription": "Fata wenyine — aderesi n'inomero za telefoni bizafunguliwa nyuma y'iyemeza",
+    "selfPickupFree": "Ubuntu",
+    "selfPickupUnlockBadge": "Aderesi izafungurwa nyuma y'itumiza",
+    "delivery": "Saba Koherezwa ku Adiresi Yanjye",
+    "deliveryCompact": "Koherezwa",
+    "deliveryDescription": "Umunyamabuye atumwe — telefoni y'umuhinzi irahishwa",
+    "pickupLockMessage": "Aderesi nziza y'aho gufata n'inomero ya telefoni bizafungurwa nyuma yo kwemeza itumiza."
+  },
+
+  "privacy": {
+    "badgeCompact": "Ibanga rirarinzwe",
+    "badgeDefault": "Ubuvanganzo bw'umuhinzi n'aderesi nziza bwerekanywa nyuma yo kwemeza uburyo bwo gutwara.",
+    "pickupMessage": "Aderesi nziza n'inomero ya telefoni by'umuhinzi bizafungurwa nyuma yo kwemeza itumiza ryawe.",
+    "deliveryMessage": "Ubuvanganzo bw'umuhinzi n'aderesi birahishwa. Umunyamabuye wawe niwe ubisesengura."
+  },
+
+  "orders": {
+    "reviewTitle": "Isuzuma ry'Itumiza",
+    "fulfillmentTitle": "Uburyo bwo Gutwara",
+    "confirmTitle": "Emeza Itumiza",
+    "successTitle": "Itumiza Ryemejwe",
+    "itemCount": "Ibitonbo {count}",
+    "chooseDelivery": "Hitamo Uburyo",
+    "reviewOrder": "Subiramo Itumiza",
+    "placeOrder": "Tuma Itumiza · {total}",
+    "placing": "Kohereza…",
+    "emptyCart": "Agasanduku kawe karagwa.",
+    "remove": "Kuraho {name}",
+    "lineTotal": "{currency} {amount}",
+    "subtotal": "Igiteranyo cy'ibitera",
+    "deliveryFee": "Amafaranga yo gutwara",
+    "freePickup": "Ubuntu — Gufata",
+    "total": "Igiteranyo",
+    "items": "Ibitonbo",
+    "fulfillmentLabel": "Uburyo",
+    "selfPickupLabel": "Gufata",
+    "deliveryLabel": "Koherezwa",
+    "addressLabel": "Aho",
+    "paymentNote": "Kwishyura bisabwa igihe bigeye cyangwa ukoresheje mobile money.",
+    "smsConfirmationNote": "Ubutumwa bwa SMS butumwe kuri telefoni yawe.",
+    "deliveryAddressLabel": "Aderesi yo Koherezwa",
+    "deliveryAddressRequired": "Aderesi yo koherezwa irakenewe.",
+    "deliveryAddressPlaceholder": "urugero: Kigali — KG 7 Ave, Hotel Rwanda",
+    "orderNumber": "Itumiza #{number}",
+
+    "pickupUnlocked": "Amakuru yo Gufata Afunguwe",
+    "pickupUnlockedSub": "Yihariye itumiza ryawe — banza ubyegerezeho ibanga",
+    "cooperativeFarm": "Koperative / Ubutaka",
+    "pickupLocation": "Aho Gufata",
+    "directContact": "Inomero ya Telefoni",
+    "pickupPrivacyNote": "Inomero irasangirwa gusa mu gufata. Ntuyisangirire abandi.",
+
+    "orderDispatched": "Itumiza Ryoherejwe",
+    "trackingPlaced": "Itumiza ryakiriwe",
+    "trackingPlacedSub": "Itumiza ryawe ryemejwe",
+    "trackingAssigned": "Umunyamabuye abonetse",
+    "trackingAssignedSub": "Umunyamabuye yoherejwe gufata ku muhinzi",
+    "trackingInTransit": "Uri mu nzira",
+    "trackingInTransitSub": "Ibitera biragezwa aho uri",
+    "trackingDelivered": "Bigeye",
+    "trackingDeliveredSub": "Ibitera byagezeho aderesi yawe",
+    "trackingPrivacyNote": "Amakuru y'umuhinzi ararinzwe kandi asangirwa gusa n'umunyamabuye wawe.",
+    "smsStagedNote": "Uzakira ubutumwa bwa SMS ku ntera yose.",
+
+    "preConfirmPickupNote": "Kwemeza itumiza bizafungura aderesi nziza n'inomero ya telefoni by'umuhinzi gusa kuri wowe.",
+    "contactNotAvailable": "Amakuru yo gufata araboneka gusa ku matumiza yemejwe ya SELF_PICKUP."
+  }
+}

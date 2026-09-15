@@ -1,0 +1,174 @@
+{
+  "common": {
+    "appName": "Fresheri",
+    "appTagline": "Marché",
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "back": "Retour",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "reset": "Réinitialiser",
+    "any": "Tout",
+    "free": "Gratuit",
+    "organic": "Bio",
+    "verified": "Vérifié",
+    "currency": "KES",
+    "perKg": "/ kg",
+    "perTon": "/ tonne",
+    "kgUnit": "kg",
+    "tonUnit": "t",
+    "minLabel": "Min",
+    "stepLabel": "pas",
+    "customKg": "Kg personnalisé…",
+    "privacyProtected": "Confidentialité protégée",
+    "continueShoppingBtn": "Continuer les achats",
+    "soldOut": "ÉPUISÉ",
+    "partialStock": "Stock partiel"
+  },
+
+  "navigation": {
+    "marketplace": "Marché",
+    "openFilters": "Ouvrir les filtres",
+    "orderCart": "Commande",
+    "cartAriaLabel": "Panier — {count} article(s)"
+  },
+
+  "language": {
+    "en": "Anglais",
+    "rw": "Kinyarwanda",
+    "fr": "Français",
+    "selectLanguage": "Choisir la langue"
+  },
+
+  "roles": {
+    "FARMER": "Agriculteur",
+    "COOPERATIVE": "Coopérative",
+    "COMMERCIAL_BUYER": "Acheteur Commercial",
+    "HOUSEHOLD_BUYER": "Acheteur Particulier",
+    "LOGISTICS_PARTNER": "Partenaire Logistique",
+    "ADMIN": "Administrateur"
+  },
+
+  "auth": {
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "signUp": "S'inscrire",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?"
+  },
+
+  "marketplace": {
+    "heroTitle": "Marché de Produits en Gros",
+    "heroSubtitle": "Achetez directement auprès de coopératives agricoles vérifiées. Confidentialité assurée — l'identité de l'agriculteur n'est révélée qu'après votre choix de livraison confirmé.",
+    "activeListings": "Annonces actives",
+    "cooperatives": "Coopératives",
+    "cropCategories": "Catégories de cultures",
+    "listingsAvailable": "{count} annonce{count, plural, one {} other {s}} disponible{count, plural, one {} other {s}}",
+    "noListingsTitle": "Aucune annonce ne correspond à vos filtres",
+    "noListingsClear": "Effacer tous les filtres",
+    "searchPlaceholder": "Chercher un produit, coopérative, région…",
+    "harvestedOn": "Récolté le {date}",
+    "remaining": "{qty} disponible",
+    "addToOrderPickup": "Ajouter · Retrait",
+    "addToOrderDelivery": "Ajouter · Livraison",
+    "addedConfirmation": "Ajouté !",
+    "minQtyHint": "Min {min} kg · pas {step} kg",
+    "inclDelivery": "livraison incluse",
+    "cooperativeIn": "Coopérative agricole à {region}",
+    "listingFound": "{count} annonce{count, plural, one {} other {s}} trouvée{count, plural, one {} other {s}}",
+    "searchResultsFor": "Résultats pour \"{query}\""
+  },
+
+  "filters": {
+    "title": "Filtres",
+    "reset": "Réinitialiser",
+    "cropCategory": "Catégorie de culture",
+    "allCategories": "Toutes les catégories",
+    "minAvailableQty": "Qté minimale disponible",
+    "location": "Localisation",
+    "allLocations": "Toutes les régions",
+    "fulfillment": "Mode de livraison",
+    "fulfillmentAll": "Toutes les options",
+    "fulfillmentPickup": "Retrait uniquement",
+    "fulfillmentDelivery": "Livraison uniquement",
+    "customKgPlaceholder": "Kg personnalisé…"
+  },
+
+  "fulfillment": {
+    "method": "Mode de livraison",
+    "selfPickup": "Retrait en coopérative",
+    "selfPickupCompact": "Retrait",
+    "selfPickupDescription": "Collecte directe — localisation & contact débloqués après confirmation",
+    "selfPickupFree": "Gratuit",
+    "selfPickupUnlockBadge": "Lieu débloqué après commande",
+    "delivery": "Demander la livraison à mon adresse",
+    "deliveryCompact": "Livraison",
+    "deliveryDescription": "Agent logistique dépêché — coordonnées de l'agriculteur restent privées",
+    "pickupLockMessage": "La localisation exacte et les coordonnées de retrait seront débloquées à la confirmation de la commande."
+  },
+
+  "privacy": {
+    "badgeCompact": "Confidentialité protégée",
+    "badgeDefault": "L'identité de l'agriculteur et l'adresse exacte de retrait seront révélées à la confirmation de votre choix de livraison.",
+    "pickupMessage": "La localisation exacte et le contact de l'agriculteur seront débloqués immédiatement après confirmation de votre commande.",
+    "deliveryMessage": "L'identité de l'agriculteur et l'adresse de retrait restent privées. Votre agent logistique gère toute la coordination."
+  },
+
+  "orders": {
+    "reviewTitle": "Récapitulatif de commande",
+    "fulfillmentTitle": "Mode de livraison",
+    "confirmTitle": "Confirmer la commande",
+    "successTitle": "Commande confirmée",
+    "itemCount": "{count} article{count, plural, one {} other {s}}",
+    "chooseDelivery": "Choisir la livraison",
+    "reviewOrder": "Vérifier la commande",
+    "placeOrder": "Passer la commande · {total}",
+    "placing": "En cours…",
+    "emptyCart": "Votre panier est vide.",
+    "remove": "Supprimer {name}",
+    "lineTotal": "{currency} {amount}",
+    "subtotal": "Sous-total produits",
+    "deliveryFee": "Frais de livraison",
+    "freePickup": "Gratuit — Retrait",
+    "total": "Total",
+    "items": "Articles",
+    "fulfillmentLabel": "Mode",
+    "selfPickupLabel": "Retrait",
+    "deliveryLabel": "Livraison",
+    "addressLabel": "Vers",
+    "paymentNote": "Le paiement est collecté à la livraison ou via mobile money après confirmation.",
+    "smsConfirmationNote": "Confirmation par SMS envoyée sur votre téléphone.",
+    "deliveryAddressLabel": "Adresse de livraison",
+    "deliveryAddressRequired": "L'adresse de livraison est obligatoire.",
+    "deliveryAddressPlaceholder": "ex. Kigali — KG 7 Ave, Hôtel des Mille Collines",
+    "orderNumber": "Commande #{number}",
+
+    "pickupUnlocked": "Détails de retrait débloqués",
+    "pickupUnlockedSub": "Exclusif à votre commande — veuillez garder ces informations confidentielles",
+    "cooperativeFarm": "Coopérative / Exploitation",
+    "pickupLocation": "Lieu de retrait",
+    "directContact": "Contact direct",
+    "pickupPrivacyNote": "Ce contact est partagé exclusivement pour la coordination du retrait. Ne le partagez pas publiquement.",
+
+    "orderDispatched": "Commande expédiée",
+    "trackingPlaced": "Commande passée",
+    "trackingPlacedSub": "Votre commande est confirmée",
+    "trackingAssigned": "Agent logistique assigné",
+    "trackingAssignedSub": "Agent dépêché au point de collecte de l'agriculteur",
+    "trackingInTransit": "En transit",
+    "trackingInTransitSub": "Produits en cours de transport",
+    "trackingDelivered": "Livré",
+    "trackingDeliveredSub": "Produits livrés à votre adresse",
+    "trackingPrivacyNote": "Les coordonnées de l'agriculteur restent confidentielles et ne sont partagées qu'avec votre agent logistique.",
+    "smsStagedNote": "Vous recevrez une mise à jour SMS à chaque étape.",
+
+    "preConfirmPickupNote": "La confirmation de cette commande débloquera la localisation exacte et le contact de l'agriculteur exclusivement pour vous.",
+    "contactNotAvailable": "Le contact de retrait n'est disponible que pour les commandes SELF_PICKUP confirmées."
+  }
+}

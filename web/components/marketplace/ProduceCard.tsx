@@ -1,43 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
-  MapPin,
-  CalendarCheck,
-  Package,
-  Leaf,
-  Minus,
-  Plus,
-  ShoppingCart,
-  BadgeCheck,
-  ShieldCheck,
-  Users,
+  MapPin, CalendarCheck, Package, Leaf,
+  Minus, Plus, ShoppingCart, BadgeCheck, ShieldCheck, Users,
 } from "lucide-react";
-import { BASE_DELIVERY_FEE, PICKUP_LOCK_MESSAGE } from "@/lib/constants";
 import { ProduceListing, DeliveryOption } from "@/types/marketplace";
-import PrivacyBadge from "./PrivacyBadge";
+import { BASE_DELIVERY_FEE } from "@/lib/constants";
+import PrivacyBadge      from "./PrivacyBadge";
 import FulfillmentToggle from "./FulfillmentToggle";
 
 interface ProduceCardProps {
   listing: ProduceListing;
-  onAddToCart: (
-    listing: ProduceListing,
-    qty: number,
-    fulfillment: DeliveryOption
-  ) => void;
+  onAddToCart: (listing: ProduceListing, qty: number, fulfillment: DeliveryOption) => void;
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-KE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+function formatDate(iso: string, locale?: string) {
+  return new Date(iso).toLocaleDateString(locale ?? "en", {
+    day: "numeric", month: "short", year: "numeric",
   });
 }
 
-function formatQty(qty: number, unit: string) {
-  if (unit === "KG" && qty >= 1000) return `${(qty / 1000).toFixed(1)} t`;
-  return `${qty.toLocaleString()} ${unit.toLowerCase()}`;
+function formatQty(qty: number, unit: string, kgLabel: string, tLabel: string) {
+  if (unit === "KG" && qty >= 1000) return `${(qty / 1000).toFixed(1)} ${tLabel}`;
+  return `${qty.toLocaleString()} ${kgLabel}`;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -55,22 +42,19 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
 };
 
 export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) {
-  // Default fulfillment to first available option
-  const defaultFulfillment: DeliveryOption =
-    listing.deliveryOptions[0] ?? "SELF_PICKUP";
+  const t  = useTranslations("marketplace");
+  const tc = useTranslations("common");
+  const tf = useTranslations("fulfillment");
 
+  const defaultFulfillment: DeliveryOption = listing.deliveryOptions[0] ?? "SELF_PICKUP";
   const [qty, setQty]               = useState(listing.minimumOrderQty);
   const [fulfillment, setFulfillment] = useState<DeliveryOption>(defaultFulfillment);
   const [added, setAdded]           = useState(false);
 
-  const step     = listing.minimumOrderQty;
-  const minQty   = listing.minimumOrderQty;
-  const maxQty   = listing.availableQuantity;
-  const lineTotal = qty * listing.unitPrice
-    + (fulfillment === "DELIVERED" ? BASE_DELIVERY_FEE : 0);
-
-  const decrement = () => setQty((q) => Math.max(minQty, q - step));
-  const increment = () => setQty((q) => Math.min(maxQty, q + step));
+  const step      = listing.minimumOrderQty;
+  const minQty    = listing.minimumOrderQty;
+  const maxQty    = listing.availableQuantity;
+  const lineTotal = qty * listing.unitPrice + (fulfillment === "DELIVERED" ? BASE_DELIVERY_FEE : 0);
 
   const handleAdd = () => {
     onAddToCart(listing, qty, fulfillment);
@@ -85,111 +69,76 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
   return (
     <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
 
-      {/* ── Image / Placeholder ── */}
+      {/* Image / Placeholder */}
       <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
         {listing.imageUrls[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={listing.imageUrls[0]}
-            alt={listing.produceName}
-            className="w-full h-full object-cover"
-          />
+          <img src={listing.imageUrls[0]} alt={listing.produceName} className="w-full h-full object-cover" />
         ) : (
-          <span className="text-white/60 text-5xl font-bold select-none">
-            {listing.produceName.charAt(0)}
-          </span>
+          <span className="text-white/60 text-5xl font-bold select-none">{listing.produceName.charAt(0)}</span>
         )}
-
-        {/* Category badge */}
         <span className={`absolute top-3 left-3 text-xs font-semibold px-2 py-0.5 rounded-full ${badgeColor}`}>
           {listing.categoryName}
         </span>
-
-        {/* Organic badge */}
         {listing.isOrganic && (
           <span className="absolute top-3 right-3 flex items-center gap-1 text-xs font-semibold bg-green-600 text-white px-2 py-0.5 rounded-full">
-            <Leaf size={10} />
-            Organic
+            <Leaf size={10} />{tc("organic")}
           </span>
         )}
-
-        {/* Sold out overlay */}
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="text-white font-bold text-lg tracking-wide">SOLD OUT</span>
+            <span className="text-white font-bold text-lg tracking-wide">{tc("soldOut")}</span>
           </div>
         )}
       </div>
 
-      {/* ── Body ── */}
+      {/* Body */}
       <div className="p-4 flex flex-col flex-1 gap-3">
-
-        {/* Produce name + variety */}
         <div>
           <h2 className="font-bold text-gray-900 text-base leading-tight">
             {listing.produceName}
-            {listing.variety && (
-              <span className="ml-1 text-gray-400 font-normal text-sm">
-                ({listing.variety})
-              </span>
-            )}
+            {listing.variety && <span className="ml-1 text-gray-400 font-normal text-sm">({listing.variety})</span>}
           </h2>
-
-          {/* Cooperative name — never a personal farmer name */}
           <div className="flex items-center gap-1 mt-0.5">
-            {listing.sellerVerified ? (
-              <BadgeCheck size={13} className="text-blue-500 shrink-0" />
-            ) : (
-              <ShieldCheck size={13} className="text-gray-300 shrink-0" />
-            )}
+            {listing.sellerVerified
+              ? <BadgeCheck size={13} className="text-blue-500 shrink-0" />
+              : <ShieldCheck size={13} className="text-gray-300 shrink-0" />}
             <span className="text-xs text-gray-500 truncate">
               <Users size={10} className="inline mr-0.5 text-gray-400" />
-              Farmer Cooperative in{" "}
-              <span className="font-medium text-gray-700">
-                {listing.region.replace(" District", "")}
-              </span>
+              {t("cooperativeIn", { region: listing.region.replace(" District", "") })}
             </span>
           </div>
         </div>
 
-        {/* Meta row — region only, no street address */}
         <ul className="space-y-1">
           <li className="flex items-center gap-1.5 text-xs text-gray-500">
             <MapPin size={12} className="text-green-500 shrink-0" />
-            {/* District-level region only */}
             {listing.region}
           </li>
           <li className="flex items-center gap-1.5 text-xs text-gray-500">
             <CalendarCheck size={12} className="text-green-500 shrink-0" />
-            Harvested {formatDate(listing.harvestDate)}
+            {t("harvestedOn", { date: formatDate(listing.harvestDate) })}
           </li>
           <li className="flex items-center gap-1.5 text-xs text-gray-500">
             <Package size={12} className="text-green-500 shrink-0" />
-            {formatQty(listing.availableQuantity, listing.unit)} available
+            {t("remaining", { qty: formatQty(listing.availableQuantity, listing.unit, tc("kgUnit"), tc("tonUnit")) })}
             {listing.status === "PARTIALLY_SOLD" && (
-              <span className="ml-1 text-amber-500 font-medium">· Partial stock</span>
+              <span className="ml-1 text-amber-500 font-medium">· {tc("partialStock")}</span>
             )}
           </li>
         </ul>
 
-        {/* Privacy badge — always shown */}
         <PrivacyBadge compact />
 
-        {/* Price */}
         <div className="flex items-baseline gap-1">
           <span className="text-xl font-bold text-green-700">
             {listing.currency} {listing.unitPrice.toLocaleString()}
           </span>
-          <span className="text-xs text-gray-400">
-            / {listing.unit.toLowerCase()}
-          </span>
+          <span className="text-xs text-gray-400">{listing.unit === "KG" ? tc("perKg") : tc("perTon")}</span>
         </div>
 
-        {/* ── Fulfillment toggle + quantity ── */}
         {!isSoldOut && (
           <div className="mt-auto space-y-3">
-
-            {/* Compact fulfillment radio */}
             <FulfillmentToggle
               value={fulfillment}
               onChange={setFulfillment}
@@ -199,68 +148,44 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
               compact
             />
 
-            {/* SELF_PICKUP hint */}
             {fulfillment === "SELF_PICKUP" && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
-                🔒 {PICKUP_LOCK_MESSAGE}
+                🔒 {tf("pickupLockMessage")}
               </p>
             )}
 
-            {/* Quantity selector */}
             <div className="flex items-center justify-between bg-gray-50 rounded-xl p-1">
-              <button
-                onClick={decrement}
-                disabled={qty <= minQty}
-                aria-label="Decrease quantity"
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
-              >
+              <button onClick={() => setQty((q) => Math.max(minQty, q - step))} disabled={qty <= minQty} aria-label={tc("minLabel")}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition">
                 <Minus size={14} />
               </button>
-
               <div className="text-center">
-                <span className="font-semibold text-gray-800 text-sm">
-                  {qty.toLocaleString()} kg
-                </span>
+                <span className="font-semibold text-gray-800 text-sm">{qty.toLocaleString()} {tc("kgUnit")}</span>
                 <p className="text-xs text-gray-400">
-                  {listing.currency}{" "}
-                  {lineTotal.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  {fulfillment === "DELIVERED" && (
-                    <span className="text-purple-500"> incl. delivery</span>
-                  )}
+                  {listing.currency} {lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {fulfillment === "DELIVERED" && <span className="text-purple-500"> {t("inclDelivery")}</span>}
                 </p>
               </div>
-
-              <button
-                onClick={increment}
-                disabled={qty >= maxQty}
-                aria-label="Increase quantity"
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
-              >
+              <button onClick={() => setQty((q) => Math.min(maxQty, q + step))} disabled={qty >= maxQty} aria-label="+"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition">
                 <Plus size={14} />
               </button>
             </div>
 
             <p className="text-xs text-gray-400 text-center">
-              Min {minQty.toLocaleString()} kg · step {step.toLocaleString()} kg
+              {t("minQtyHint", { min: minQty.toLocaleString(), step: step.toLocaleString() })}
             </p>
 
             <button
               onClick={handleAdd}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95 ${
-                added
-                  ? "bg-green-600 text-white scale-95"
-                  : "bg-green-600 hover:bg-green-700 text-white"
-              }`}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95 bg-green-600 hover:bg-green-700 text-white"
             >
               <ShoppingCart size={15} />
               {added
-                ? "Added!"
+                ? t("addedConfirmation")
                 : fulfillment === "SELF_PICKUP"
-                ? "Add to Order · Pickup"
-                : "Add to Order · Delivery"}
+                ? t("addToOrderPickup")
+                : t("addToOrderDelivery")}
             </button>
           </div>
         )}

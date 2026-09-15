@@ -1,0 +1,174 @@
+{
+  "common": {
+    "appName": "Fresheri",
+    "appTagline": "Marketplace",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search",
+    "reset": "Reset",
+    "any": "Any",
+    "free": "Free",
+    "organic": "Organic",
+    "verified": "Verified",
+    "currency": "KES",
+    "perKg": "/ kg",
+    "perTon": "/ ton",
+    "kgUnit": "kg",
+    "tonUnit": "t",
+    "minLabel": "Min",
+    "stepLabel": "step",
+    "customKg": "Custom kg…",
+    "privacyProtected": "Privacy protected",
+    "continueShoppingBtn": "Continue Shopping",
+    "soldOut": "SOLD OUT",
+    "partialStock": "Partial stock"
+  },
+
+  "navigation": {
+    "marketplace": "Marketplace",
+    "openFilters": "Open filters",
+    "orderCart": "Order",
+    "cartAriaLabel": "Cart — {count} items"
+  },
+
+  "language": {
+    "en": "English",
+    "rw": "Kinyarwanda",
+    "fr": "French",
+    "selectLanguage": "Select language"
+  },
+
+  "roles": {
+    "FARMER": "Farmer",
+    "COOPERATIVE": "Cooperative",
+    "COMMERCIAL_BUYER": "Commercial Buyer",
+    "HOUSEHOLD_BUYER": "Household Buyer",
+    "LOGISTICS_PARTNER": "Logistics Partner",
+    "ADMIN": "Administrator"
+  },
+
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+
+  "marketplace": {
+    "heroTitle": "Bulk Produce Marketplace",
+    "heroSubtitle": "Source directly from verified farmer cooperatives. Privacy-protected — farmer identity revealed only upon your confirmed fulfillment choice.",
+    "activeListings": "Active Listings",
+    "cooperatives": "Cooperatives",
+    "cropCategories": "Crop Categories",
+    "listingsAvailable": "{count} listing{count, plural, one {} other {s}} available",
+    "noListingsTitle": "No listings match your filters",
+    "noListingsClear": "Clear all filters",
+    "searchPlaceholder": "Search produce, cooperative, region…",
+    "harvestedOn": "Harvested {date}",
+    "remaining": "{qty} available",
+    "addToOrderPickup": "Add to Order · Pickup",
+    "addToOrderDelivery": "Add to Order · Delivery",
+    "addedConfirmation": "Added!",
+    "minQtyHint": "Min {min} kg · step {step} kg",
+    "inclDelivery": "incl. delivery",
+    "cooperativeIn": "Farmer Cooperative in {region}",
+    "listingFound": "{count} listing{count, plural, one {} other {s}} found",
+    "searchResultsFor": "Results for \"{query}\""
+  },
+
+  "filters": {
+    "title": "Filters",
+    "reset": "Reset",
+    "cropCategory": "Crop Category",
+    "allCategories": "All Categories",
+    "minAvailableQty": "Min. Available Quantity",
+    "location": "Location",
+    "allLocations": "All Locations",
+    "fulfillment": "Fulfillment",
+    "fulfillmentAll": "All Options",
+    "fulfillmentPickup": "Pickup Only",
+    "fulfillmentDelivery": "Delivery Only",
+    "customKgPlaceholder": "Custom kg…"
+  },
+
+  "fulfillment": {
+    "method": "Fulfillment Method",
+    "selfPickup": "Self-Pickup from Cooperative",
+    "selfPickupCompact": "Pickup",
+    "selfPickupDescription": "Collect directly — exact location & contact unlocked after confirmation",
+    "selfPickupFree": "Free",
+    "selfPickupUnlockBadge": "Location unlocked post-order",
+    "delivery": "Request Delivery to My Address",
+    "deliveryCompact": "Delivery",
+    "deliveryDescription": "Logistics agent dispatched — farmer contact stays private",
+    "pickupLockMessage": "Exact pickup location and contact details will be unlocked upon order confirmation."
+  },
+
+  "privacy": {
+    "badgeCompact": "Privacy protected",
+    "badgeDefault": "Farmer identity and exact pickup address revealed upon confirming pickup choice.",
+    "pickupMessage": "Exact pickup location and farmer contact will be unlocked immediately after your order is confirmed.",
+    "deliveryMessage": "Farmer identity and pickup address are kept private. Your assigned logistics agent handles all coordination."
+  },
+
+  "orders": {
+    "reviewTitle": "Order Review",
+    "fulfillmentTitle": "Fulfillment Method",
+    "confirmTitle": "Confirm Order",
+    "successTitle": "Order Confirmed",
+    "itemCount": "{count} item{count, plural, one {} other {s}}",
+    "chooseDelivery": "Choose Fulfillment",
+    "reviewOrder": "Review Order",
+    "placeOrder": "Place Order · {total}",
+    "placing": "Placing…",
+    "emptyCart": "Your order is empty.",
+    "remove": "Remove {name}",
+    "lineTotal": "{currency} {amount}",
+    "subtotal": "Produce subtotal",
+    "deliveryFee": "Delivery fee",
+    "freePickup": "Free — Self pickup",
+    "total": "Total",
+    "items": "Items",
+    "fulfillmentLabel": "Fulfillment",
+    "selfPickupLabel": "Self-Pickup",
+    "deliveryLabel": "Delivery",
+    "addressLabel": "To",
+    "paymentNote": "Payment collected on delivery or via mobile money after confirmation.",
+    "smsConfirmationNote": "SMS confirmation sent to your phone.",
+    "deliveryAddressLabel": "Delivery Address",
+    "deliveryAddressRequired": "Delivery address is required.",
+    "deliveryAddressPlaceholder": "e.g. Kigali — KG 7 Ave, Hotel des Mille Collines",
+    "orderNumber": "Order #{number}",
+
+    "pickupUnlocked": "Pickup Details Unlocked",
+    "pickupUnlockedSub": "Exclusive to your order — please keep this confidential",
+    "cooperativeFarm": "Cooperative / Farm",
+    "pickupLocation": "Pickup Location",
+    "directContact": "Direct Contact",
+    "pickupPrivacyNote": "This contact is shared exclusively for pickup coordination. Please do not share it publicly.",
+
+    "orderDispatched": "Order Dispatched",
+    "trackingPlaced": "Order placed",
+    "trackingPlacedSub": "Your order is confirmed",
+    "trackingAssigned": "Logistics agent assigned",
+    "trackingAssignedSub": "Agent dispatched to farmer pickup point",
+    "trackingInTransit": "In transit",
+    "trackingInTransitSub": "Produce being transported to you",
+    "trackingDelivered": "Delivered",
+    "trackingDeliveredSub": "Produce delivered to your address",
+    "trackingPrivacyNote": "Farmer contact details are kept private and shared only with your assigned logistics agent for pickup coordination.",
+    "smsStagedNote": "You will receive an SMS update at each stage.",
+
+    "preConfirmPickupNote": "Confirming this order will unlock the exact pickup location and farmer contact number exclusively for you.",
+    "contactNotAvailable": "Pickup contact is only available for confirmed SELF_PICKUP orders."
+  }
+}
