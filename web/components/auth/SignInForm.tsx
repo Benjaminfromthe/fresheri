@@ -22,6 +22,7 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { rememberMe: false },
+    mode: "onTouched",
   });
 
   const onSubmit = async (_data: SignInValues) => {
@@ -30,8 +31,14 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
     onSuccess?.();
   };
 
-  // Translate Zod error keys → i18n strings
-  const e = (key?: string) => (key ? t(key as Parameters<typeof t>[0]) : undefined);
+  // Safe error translator — never throws on missing keys
+  const e = (key?: string): string | undefined => {
+    if (!key) return undefined;
+    try {
+      if (key.startsWith("err")) return t(key as Parameters<typeof t>[0]);
+      return key;
+    } catch { return key; }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">

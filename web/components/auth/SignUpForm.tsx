@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Phone, User, MapPin, Building2, Truck, Loader2, ShieldCheck } from "lucide-react";
+import { Phone, User, MapPin, Building2, Truck, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 
 import {
   AuthRole,
@@ -12,112 +12,128 @@ import {
   SignUpValues,
 } from "@/lib/auth/schemas";
 
-import RoleToggle      from "./RoleToggle";
-import PasswordInput   from "./PasswordInput";
+import RoleToggle       from "./RoleToggle";
+import PasswordInput    from "./PasswordInput";
 import PasswordStrength from "./PasswordStrength";
-import FormField       from "./FormField";
+import FormField        from "./FormField";
 
 interface SignUpFormProps {
   onSuccess?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────
+// Safe i18n error translator
+// Returns the translated string if the key exists, otherwise
+// returns the raw Zod message so errors always display.
+// ─────────────────────────────────────────────────────────────
+
+function useErrorTranslator() {
+  const t = useTranslations("auth");
+  return (msg?: string): string | undefined => {
+    if (!msg) return undefined;
+    try {
+      // Only translate keys that start with "err" (our Zod error keys)
+      if (msg.startsWith("err")) {
+        return t(msg as Parameters<typeof t>[0]);
+      }
+      return msg;
+    } catch {
+      return msg;
+    }
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // Role-specific extra field sections
 // ─────────────────────────────────────────────────────────────
 
-function FarmerFields({
-  register, errors, t,
-}: {
+type FieldSectionProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any; errors: any; t: (k: string) => string;
-}) {
+  register: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errors: any;
+  translateErr: (msg?: string) => string | undefined;
+  t: (k: string) => string;
+};
+
+function FarmerFields({ register, errors, translateErr, t }: FieldSectionProps) {
   return (
     <>
       <FormField
         label={t("farmName")}
         placeholder="e.g. Kirinyaga Farmers Cooperative"
         icon={<MapPin size={15} />}
-        error={errors.farmName?.message ? t(errors.farmName.message) : undefined}
+        error={translateErr(errors.farmName?.message)}
         {...register("farmName")}
       />
       <FormField
         label={t("cooperativeRegNumber")}
-        placeholder="e.g. COOP-2024-001"
+        placeholder="e.g. COOP-2024-001 (optional)"
         icon={<Building2 size={15} />}
-        error={errors.cooperativeRegNumber?.message ? t(errors.cooperativeRegNumber.message) : undefined}
+        error={translateErr(errors.cooperativeRegNumber?.message)}
         {...register("cooperativeRegNumber")}
       />
       <FormField
         label={t("farmLocation")}
         placeholder="e.g. Kirinyaga District"
         icon={<MapPin size={15} />}
-        error={errors.farmLocation?.message ? t(errors.farmLocation.message) : undefined}
+        error={translateErr(errors.farmLocation?.message)}
         {...register("farmLocation")}
       />
     </>
   );
 }
 
-function CommercialFields({
-  register, errors, t,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any; errors: any; t: (k: string) => string;
-}) {
+function CommercialFields({ register, errors, translateErr, t }: FieldSectionProps) {
   return (
     <>
       <FormField
         label={t("businessName")}
         placeholder="e.g. Grand Hotel Kigali"
         icon={<Building2 size={15} />}
-        error={errors.businessName?.message ? t(errors.businessName.message) : undefined}
+        error={translateErr(errors.businessName?.message)}
         {...register("businessName")}
       />
       <FormField
         label={t("businessRegNumber")}
-        placeholder="e.g. TIN-123456789"
+        placeholder="e.g. TIN-123456789 (optional)"
         icon={<Building2 size={15} />}
-        error={errors.businessRegNumber?.message ? t(errors.businessRegNumber.message) : undefined}
+        error={translateErr(errors.businessRegNumber?.message)}
         {...register("businessRegNumber")}
       />
       <FormField
         label={t("businessAddress")}
         placeholder="e.g. KG 7 Ave, Kigali"
         icon={<MapPin size={15} />}
-        error={errors.businessAddress?.message ? t(errors.businessAddress.message) : undefined}
+        error={translateErr(errors.businessAddress?.message)}
         {...register("businessAddress")}
       />
     </>
   );
 }
 
-function LogisticsFields({
-  register, errors, t,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any; errors: any; t: (k: string) => string;
-}) {
+function LogisticsFields({ register, errors, translateErr, t }: FieldSectionProps) {
   return (
     <>
       <FormField
         label={t("vehicleType")}
         placeholder="e.g. 3-ton truck"
         icon={<Truck size={15} />}
-        error={errors.vehicleType?.message ? t(errors.vehicleType.message) : undefined}
+        error={translateErr(errors.vehicleType?.message)}
         {...register("vehicleType")}
       />
       <FormField
         label={t("vehicleRegNumber")}
-        placeholder="e.g. KAA 123A"
+        placeholder="e.g. KAA 123A (optional)"
         icon={<Truck size={15} />}
-        error={errors.vehicleRegNumber?.message ? t(errors.vehicleRegNumber.message) : undefined}
+        error={translateErr(errors.vehicleRegNumber?.message)}
         {...register("vehicleRegNumber")}
       />
       <FormField
         label={t("operatingRegion")}
         placeholder="e.g. Nairobi, Kirinyaga"
         icon={<MapPin size={15} />}
-        error={errors.operatingRegion?.message ? t(errors.operatingRegion.message) : undefined}
+        error={translateErr(errors.operatingRegion?.message)}
         {...register("operatingRegion")}
       />
     </>
@@ -129,9 +145,12 @@ function LogisticsFields({
 // ─────────────────────────────────────────────────────────────
 
 export default function SignUpForm({ onSuccess }: SignUpFormProps) {
-  const t = useTranslations("auth");
-  const [role, setRole] = useState<AuthRole>(AuthRole.FARMER);
+  const t           = useTranslations("auth");
+  const translateErr = useErrorTranslator();
+
+  const [role, setRole]                   = useState<AuthRole>(AuthRole.FARMER);
   const [watchedPassword, setWatchedPassword] = useState("");
+  const [submitError, setSubmitError]     = useState<string | null>(null);
 
   const schema = getSignUpSchema(role);
 
@@ -143,30 +162,37 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<SignUpValues>({
     resolver: zodResolver(schema),
+    mode: "onTouched", // show errors as soon as field is touched & left
   });
 
-  // Watch password for strength indicator
-  const passwordValue = watch("password" as keyof SignUpValues) as string ?? "";
+  const passwordValue = (watch("password" as keyof SignUpValues) as string) ?? "";
 
-  // When role changes, reset form to avoid stale field values
   const handleRoleChange = useCallback(
     (newRole: AuthRole) => {
       setRole(newRole);
       reset();
       setWatchedPassword("");
+      setSubmitError(null);
     },
     [reset]
   );
 
   const onSubmit = async (_data: SignUpValues) => {
-    // TODO: wire to POST /api/auth/signup when backend auth endpoint is ready.
-    // For now simulate a brief API call so the loading spinner is visible.
-    await new Promise((r) => setTimeout(r, 600));
-    onSuccess?.();
+    setSubmitError(null);
+    try {
+      // TODO: replace with real API call POST /api/auth/signup
+      await new Promise((r) => setTimeout(r, 600));
+      onSuccess?.();
+    } catch {
+      setSubmitError("Something went wrong. Please try again.");
+    }
   };
 
-  // Translate Zod error key → i18n string
-  const e = (msg?: string) => (msg ? t(msg as Parameters<typeof t>[0]) : undefined);
+  // Collect all current error messages for the top banner
+  const errorValues = Object.values(errors as Record<string, { message?: string }>);
+  const hasErrors   = errorValues.length > 0;
+
+  const fieldProps = { register, errors, translateErr, t };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
@@ -174,17 +200,34 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
       {/* Role selector */}
       <RoleToggle value={role} onChange={handleRoleChange} />
 
-      {/* Divider */}
       <div className="border-t border-gray-100 pt-1" />
 
-      {/* Base fields: first name + last name side by side */}
+      {/* Validation summary banner — shown after a failed submit attempt */}
+      {hasErrors && (
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
+          <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
+          <p className="text-xs text-red-600">
+            Please fix the highlighted fields before continuing.
+          </p>
+        </div>
+      )}
+
+      {/* Submit error */}
+      {submitError && (
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
+          <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
+          <p className="text-xs text-red-600">{submitError}</p>
+        </div>
+      )}
+
+      {/* First name + Last name */}
       <div className="grid grid-cols-2 gap-3">
         <FormField
           label={t("firstName")}
           placeholder="Jean"
           autoComplete="given-name"
           icon={<User size={15} />}
-          error={e((errors as Record<string, { message?: string }>).firstName?.message)}
+          error={translateErr((errors as Record<string, { message?: string }>).firstName?.message)}
           {...register("firstName" as keyof SignUpValues)}
         />
         <FormField
@@ -192,7 +235,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
           placeholder="Mutabazi"
           autoComplete="family-name"
           icon={<User size={15} />}
-          error={e((errors as Record<string, { message?: string }>).lastName?.message)}
+          error={translateErr((errors as Record<string, { message?: string }>).lastName?.message)}
           {...register("lastName" as keyof SignUpValues)}
         />
       </div>
@@ -204,27 +247,27 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
         type="tel"
         autoComplete="tel"
         icon={<Phone size={15} />}
-        error={e((errors as Record<string, { message?: string }>).phone?.message)}
+        error={translateErr((errors as Record<string, { message?: string }>).phone?.message)}
         {...register("phone" as keyof SignUpValues)}
       />
 
-      {/* Role-specific extra fields */}
+      {/* Role-specific fields */}
       {(role === AuthRole.FARMER || role === AuthRole.COOPERATIVE) && (
-        <FarmerFields register={register} errors={errors} t={t} />
+        <FarmerFields {...fieldProps} />
       )}
       {role === AuthRole.COMMERCIAL_BUYER && (
-        <CommercialFields register={register} errors={errors} t={t} />
+        <CommercialFields {...fieldProps} />
       )}
       {role === AuthRole.LOGISTICS_PARTNER && (
-        <LogisticsFields register={register} errors={errors} t={t} />
+        <LogisticsFields {...fieldProps} />
       )}
 
-      {/* Password */}
+      {/* Password + strength */}
       <div className="space-y-1">
         <PasswordInput
           label={t("password")}
           autoComplete="new-password"
-          error={e((errors as Record<string, { message?: string }>).password?.message)}
+          error={translateErr((errors as Record<string, { message?: string }>).password?.message)}
           {...register("password" as keyof SignUpValues, {
             onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
               setWatchedPassword(e.target.value),
@@ -237,7 +280,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
       <PasswordInput
         label={t("confirmPassword")}
         autoComplete="new-password"
-        error={e((errors as Record<string, { message?: string }>).confirmPassword?.message)}
+        error={translateErr((errors as Record<string, { message?: string }>).confirmPassword?.message)}
         {...register("confirmPassword" as keyof SignUpValues)}
       />
 
@@ -253,9 +296,13 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
       {/* Terms */}
       <p className="text-xs text-gray-400 text-center leading-relaxed">
         {t("termsNotice")}{" "}
-        <button type="button" className="text-green-600 hover:underline font-medium">{t("termsLink")}</button>{" "}
+        <button type="button" className="text-green-600 hover:underline font-medium">
+          {t("termsLink")}
+        </button>{" "}
         {t("and")}{" "}
-        <button type="button" className="text-green-600 hover:underline font-medium">{t("privacyLink")}</button>.
+        <button type="button" className="text-green-600 hover:underline font-medium">
+          {t("privacyLink")}
+        </button>.
       </p>
 
       {/* Submit */}
@@ -265,7 +312,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
         className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-2.5 rounded-xl transition-all active:scale-[0.98]"
       >
         {isSubmitting
-          ? <><Loader2 size={16} className="animate-spin" />{t("signingUp")}</>
+          ? <><Loader2 size={16} className="animate-spin" /> {t("signingUp")}</>
           : t("signUpBtn")}
       </button>
 
