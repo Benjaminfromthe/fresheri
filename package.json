@@ -16,6 +16,7 @@
   "dependencies": {
     "@prisma/client": "5.22.0",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.14.2",
     "africastalking": "^0.6.7",
@@ -28,7 +29,6 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
     "jest": "^30.5.1",
     "ts-jest": "^29.4.12",
     "ts-node-dev": "^2.0.0"

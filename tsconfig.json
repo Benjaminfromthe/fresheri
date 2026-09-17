@@ -14,5 +14,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*", "api/**/*"],
-  "exclude": ["node_modules", "dist", "web"]
+  "exclude": ["node_modules", "dist", "web", "**/*.test.ts", "**/*.spec.ts", "jest.config.ts"]
 }
