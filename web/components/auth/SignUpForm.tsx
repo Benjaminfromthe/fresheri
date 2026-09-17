@@ -159,8 +159,9 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
   );
 
   const onSubmit = async (_data: SignUpValues) => {
-    // TODO: wire to POST /api/auth/signup
-    await new Promise((r) => setTimeout(r, 900));
+    // TODO: wire to POST /api/auth/signup when backend auth endpoint is ready.
+    // For now simulate a brief API call so the loading spinner is visible.
+    await new Promise((r) => setTimeout(r, 600));
     onSuccess?.();
   };
 

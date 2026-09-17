@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Sprout, CheckCircle2 } from "lucide-react";
+import { Sprout, CheckCircle2, ArrowRight } from "lucide-react";
+import { useRouter } from "@/i18n/navigation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import MarketingPanel   from "./MarketingPanel";
 import SignInForm        from "./SignInForm";
@@ -11,26 +12,33 @@ import SignUpForm        from "./SignUpForm";
 type Tab = "signin" | "signup";
 
 // ─────────────────────────────────────────────────────────────
-// Success overlay shown after a successful auth action
+// Success overlay — shown briefly then redirects to marketplace
 // ─────────────────────────────────────────────────────────────
 
-function SuccessOverlay({ tab }: { tab: Tab }) {
+function SuccessOverlay({ tab, onGoToMarketplace }: { tab: Tab; onGoToMarketplace: () => void }) {
   const t = useTranslations("auth");
   return (
-    <div className="flex flex-col items-center justify-center py-16 gap-5 text-center">
+    <div className="flex flex-col items-center justify-center py-12 gap-5 text-center">
       <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
         <CheckCircle2 size={36} className="text-green-500" />
       </div>
       <div>
         <h3 className="font-bold text-gray-900 text-xl">
-          {tab === "signin" ? t("signIn") : t("signUp")}!
+          {tab === "signin" ? t("signIn") : t("signUp")}
         </h3>
         <p className="text-gray-400 text-sm mt-1">
           {tab === "signin"
-            ? "Redirecting to your dashboard…"
-            : "Your account is being set up…"}
+            ? "Welcome back to Fresheri!"
+            : "Your account has been created successfully!"}
         </p>
       </div>
+      <button
+        onClick={onGoToMarketplace}
+        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-xl transition-all active:scale-95"
+      >
+        Go to Marketplace
+        <ArrowRight size={16} />
+      </button>
     </div>
   );
 }
@@ -40,19 +48,21 @@ function SuccessOverlay({ tab }: { tab: Tab }) {
 // ─────────────────────────────────────────────────────────────
 
 export default function AuthCard() {
-  const t = useTranslations("auth");
-  const [tab, setTab]           = useState<Tab>("signin");
-  const [success, setSuccess]   = useState(false);
-  const [, startTransition]     = useTransition();
+  const t      = useTranslations("auth");
+  const router = useRouter();
+  const [tab, setTab]         = useState<Tab>("signin");
+  const [success, setSuccess] = useState(false);
+  const [, startTransition]   = useTransition();
 
   const switchTab = (next: Tab) => {
-    startTransition(() => {
-      setTab(next);
-      setSuccess(false);
-    });
+    startTransition(() => { setTab(next); setSuccess(false); });
   };
 
   const handleSuccess = () => setSuccess(true);
+
+  const goToMarketplace = () => {
+    router.push("/marketplace");
+  };
 
   return (
     // Full viewport — left marketing panel + right form
@@ -119,7 +129,7 @@ export default function AuthCard() {
 
           {/* Form or success */}
           {success ? (
-            <SuccessOverlay tab={tab} />
+            <SuccessOverlay tab={tab} onGoToMarketplace={goToMarketplace} />
           ) : tab === "signin" ? (
             <SignInForm onSuccess={handleSuccess} />
           ) : (

@@ -25,8 +25,8 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   });
 
   const onSubmit = async (_data: SignInValues) => {
-    // TODO: wire to POST /api/auth/signin
-    await new Promise((r) => setTimeout(r, 800)); // optimistic delay
+    // TODO: wire to POST /api/auth/signin when backend auth endpoint is ready.
+    await new Promise((r) => setTimeout(r, 600));
     onSuccess?.();
   };
 
