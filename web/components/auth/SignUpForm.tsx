@@ -188,14 +188,46 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
     }
   };
 
+  // Scroll to first error field when validation fails
+  const onInvalid = () => {
+    const firstErrorEl = document.querySelector("[data-error='true']") as HTMLElement | null;
+    if (firstErrorEl) {
+      firstErrorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      const input = firstErrorEl.querySelector("input") as HTMLInputElement | null;
+      input?.focus();
+    } else {
+      // fallback — scroll form top into view
+      document.querySelector("form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   // Collect all current error messages for the top banner
-  const errorValues = Object.values(errors as Record<string, { message?: string }>);
-  const hasErrors   = errorValues.length > 0;
+  const errorEntries = Object.entries(errors as Record<string, { message?: string }>);
+  const hasErrors    = errorEntries.length > 0;
+
+  // Build human-readable list of failing fields for the banner
+  const errorFieldLabels: Record<string, string> = {
+    firstName:            t("firstName"),
+    lastName:             t("lastName"),
+    phone:                t("phone"),
+    password:             t("password"),
+    confirmPassword:      t("confirmPassword"),
+    farmName:             t("farmName"),
+    farmLocation:         t("farmLocation"),
+    businessName:         t("businessName"),
+    businessAddress:      t("businessAddress"),
+    vehicleType:          t("vehicleType"),
+    operatingRegion:      t("operatingRegion"),
+  };
+
+  const failingFields = errorEntries
+    .map(([key]) => errorFieldLabels[key] ?? key)
+    .join(", ");
 
   const fieldProps = { register, errors, translateErr, t };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate className="space-y-4">
 
       {/* Role selector */}
       <RoleToggle value={role} onChange={handleRoleChange} />
@@ -206,9 +238,10 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
       {hasErrors && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
           <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-600">
-            Please fix the highlighted fields before continuing.
-          </p>
+          <div>
+            <p className="text-xs font-semibold text-red-600">Please complete all required fields:</p>
+            <p className="text-xs text-red-500 mt-0.5">{failingFields}</p>
+          </div>
         </div>
       )}
 

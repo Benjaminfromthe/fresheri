@@ -14,7 +14,7 @@ interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
   ({ label, error, icon, className = "", ...rest }, ref) => (
-    <div className="space-y-1">
+    <div className="space-y-1" data-error={!!error || undefined}>
       <label className="block text-sm font-medium text-gray-700">{label}</label>
       <div className="relative">
         {icon && (

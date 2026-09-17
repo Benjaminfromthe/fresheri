@@ -15,7 +15,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const [visible, setVisible] = useState(false);
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-1" data-error={!!error || undefined}>
         <label className="block text-sm font-medium text-gray-700">{label}</label>
         <div className="relative">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
