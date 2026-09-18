@@ -33,7 +33,12 @@
     "openFilters": "Open filters",
     "orderCart": "Order",
     "cartAriaLabel": "Cart — {count} items",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "profile": "My Profile",
+    "home": "Home",
+    "about": "About",
+    "howItWorks": "How it works"
   },
 
   "language": {
@@ -241,5 +246,65 @@
 
     "preConfirmPickupNote": "Confirming this order will unlock the exact pickup location and farmer contact number exclusively for you.",
     "contactNotAvailable": "Pickup contact is only available for confirmed SELF_PICKUP orders."
+  }
+}
+
+  ,"landing": {
+    "heroTitle": "Fresh Produce,\nDirect from the Farm.",
+    "heroSubtitle": "Buy verified bulk produce from farmer cooperatives across East Africa. Privacy-first, transparent pricing, flexible fulfillment.",
+    "heroSearchPlaceholder": "Search crops, region or cooperative…",
+    "filterCategory": "Crop Category",
+    "filterRegion": "Region",
+    "filterFulfillment": "Fulfillment",
+    "filterAllCategories": "All Categories",
+    "filterAllRegions": "All Regions",
+    "filterAllFulfillment": "Pickup & Delivery",
+    "filterPickup": "Self-Pickup",
+    "filterDelivery": "Delivery",
+    "searchBtn": "Search",
+    "clearFilters": "Clear filters",
+
+    "sectionTitle": "Available Produce",
+    "sectionSubtitle": "Bulk quantities sourced from verified cooperatives. Identity privacy maintained until order confirmation.",
+    "noResults": "No produce matches your search.",
+    "noResultsSub": "Try adjusting your filters or search term.",
+    "viewDetails": "View Details & Fulfillment Options",
+    "available": "{qty} available",
+    "harvestedOn": "Harvested {date}",
+    "unitPrice": "{price} / kg",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "privacyChip": "Seller identity protected",
+    "regionLabel": "Region",
+    "categoryLabel": "Category",
+
+    "statTitle": "Trusted by farmers and buyers across East Africa",
+    "stat1Value": "2,400+",
+    "stat1Label": "Active listings",
+    "stat2Value": "180+",
+    "stat2Label": "Verified cooperatives",
+    "stat3Value": "42",
+    "stat3Label": "Districts covered",
+    "stat4Value": "99%",
+    "stat4Label": "Privacy compliance",
+
+    "howTitle": "How Fresheri works",
+    "how1Title": "Browse produce",
+    "how1Desc": "Search verified bulk produce by crop, region, or fulfillment method.",
+    "how2Title": "Choose fulfillment",
+    "how2Desc": "Select self-pickup or request delivery to your hotel or restaurant.",
+    "how3Title": "Confirm & pay",
+    "how3Desc": "Farmer contact details are revealed only after order confirmation.",
+
+    "ctaTitle": "Ready to source fresh produce?",
+    "ctaSub": "Create your free account and start buying directly from verified farmer cooperatives.",
+    "ctaSignUp": "Create Free Account",
+    "ctaBrowse": "Browse Listings",
+
+    "footerTagline": "Connecting farmers and buyers across East Africa.",
+    "footerPrivacy": "Privacy Policy",
+    "footerTerms": "Terms of Service",
+    "footerContact": "Contact",
+    "footerRights": "© {year} Fresheri. All rights reserved."
   }
 }

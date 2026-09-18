@@ -33,7 +33,12 @@
     "openFilters": "Fungura igenamiterere",
     "orderCart": "Gutumiza",
     "cartAriaLabel": "Agasanduku — ibitondo {count}",
-    "signIn": "Injira"
+    "signIn": "Injira",
+    "signUp": "Iyandikishe",
+    "profile": "Umwirondoro Wanjye",
+    "home": "Ahabanza",
+    "about": "Ibyerekeye",
+    "howItWorks": "Uburyo Bikora"
   },
 
   "language": {
@@ -241,5 +246,65 @@
 
     "preConfirmPickupNote": "Kwemeza itumiza bizafungura aderesi nziza n'inomero ya telefoni by'umuhinzi gusa kuri wowe.",
     "contactNotAvailable": "Amakuru yo gufata araboneka gusa ku matumiza yemejwe ya SELF_PICKUP."
+  }
+}
+
+  ,"landing": {
+    "heroTitle": "Umusaruro Mwiza,\nUvuye Kuri Ferme.",
+    "heroSubtitle": "Gura umusaruro mu bwinshi uvuye ku makoperative y'abahinzi yemejwe muri Afurika y'Iburasirazuba. Ibanga ririnzwe, igiciro kigaragara, uburyo bwo gutwara.",
+    "heroSearchPlaceholder": "Shakisha umusaruro, akarere cyangwa koperative…",
+    "filterCategory": "Ubwoko bw'Ibitera",
+    "filterRegion": "Akarere",
+    "filterFulfillment": "Uburyo bwo Gutwara",
+    "filterAllCategories": "Ubwoko Bwose",
+    "filterAllRegions": "Akarere Kose",
+    "filterAllFulfillment": "Gufata & Koherezwa",
+    "filterPickup": "Gufata Bwite",
+    "filterDelivery": "Koherezwa",
+    "searchBtn": "Shakisha",
+    "clearFilters": "Siba igenamiterere",
+
+    "sectionTitle": "Umusaruro Uraboneka",
+    "sectionSubtitle": "Umubare munini w'umusaruro uvuye ku makoperative yemejwe. Ibanga ry'umuntu ririnzwe kugeza itumiza ryemejwe.",
+    "noResults": "Nta musaruro uhuye n'inzira yawe.",
+    "noResultsSub": "Gerageza guhindura igenamiterere cyangwa ijambo ry'inzira.",
+    "viewDetails": "Reba Amakuru & Uburyo bwo Gutwara",
+    "available": "{qty} iraboneka",
+    "harvestedOn": "Harvested {date}",
+    "unitPrice": "{price} / kg",
+    "pickup": "Gufata",
+    "delivery": "Koherezwa",
+    "privacyChip": "Umuntu w'umuhinzi ararinzwe",
+    "regionLabel": "Akarere",
+    "categoryLabel": "Ubwoko",
+
+    "statTitle": "Twizingirwa n'abahinzi n'abaguzi muri Afurika y'Iburasirazuba",
+    "stat1Value": "2,400+",
+    "stat1Label": "Ibyatanzwe byihariye",
+    "stat2Value": "180+",
+    "stat2Label": "Amakoperative yemejwe",
+    "stat3Value": "42",
+    "stat3Label": "Uturere twakoreshejwe",
+    "stat4Value": "99%",
+    "stat4Label": "Kurinda ibanga",
+
+    "howTitle": "Uburyo Fresheri ikora",
+    "how1Title": "Shakisha umusaruro",
+    "how1Desc": "Shakisha umusaruro mu bwinshi ukoresheje ubwoko, akarere, cyangwa uburyo bwo gutwara.",
+    "how2Title": "Hitamo uburyo bwo gutwara",
+    "how2Desc": "Hitamo gufata bwite cyangwa saba koherezwa ku hoteji cyangwa resitora yawe.",
+    "how3Title": "Emeza & wishyure",
+    "how3Desc": "Amakuru y'umuhinzi arekerwa gusa nyuma y'iyemeza ry'itumiza.",
+
+    "ctaTitle": "Witeguye gusura umusaruro mwiza?",
+    "ctaSub": "Fungura konti ya ubuntu ugatangira kugura neza mu makoperative y'abahinzi yemejwe.",
+    "ctaSignUp": "Fungura Konti ya Ubuntu",
+    "ctaBrowse": "Reba Ibyatanzwe",
+
+    "footerTagline": "Guhuza abahinzi n'abaguzi muri Afurika y'Iburasirazuba.",
+    "footerPrivacy": "Politiki y'Ibanga",
+    "footerTerms": "Amabwiriza y'Imikoreshereze",
+    "footerContact": "Twandikire",
+    "footerRights": "© {year} Fresheri. Uburenganzira bwose burindwa."
   }
 }

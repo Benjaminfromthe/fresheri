@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Root / redirects to /marketplace (default locale = en, no prefix)
+// Root / → default locale landing page (no prefix for 'en')
 export default function RootPage() {
-  redirect("/marketplace");
+  redirect("/");
 }

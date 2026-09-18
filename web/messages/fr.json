@@ -33,7 +33,12 @@
     "openFilters": "Ouvrir les filtres",
     "orderCart": "Commande",
     "cartAriaLabel": "Panier — {count} article(s)",
-    "signIn": "Se connecter"
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "profile": "Mon Profil",
+    "home": "Accueil",
+    "about": "À propos",
+    "howItWorks": "Comment ça marche"
   },
 
   "language": {
@@ -241,5 +246,65 @@
 
     "preConfirmPickupNote": "La confirmation de cette commande débloquera la localisation exacte et le contact de l'agriculteur exclusivement pour vous.",
     "contactNotAvailable": "Le contact de retrait n'est disponible que pour les commandes SELF_PICKUP confirmées."
+  }
+}
+
+  ,"landing": {
+    "heroTitle": "Produits frais,\nDirec de la ferme.",
+    "heroSubtitle": "Achetez des produits agricoles en gros auprès de coopératives vérifiées d'Afrique de l'Est. Confidentialité garantie, prix transparents, livraison flexible.",
+    "heroSearchPlaceholder": "Rechercher cultures, région ou coopérative…",
+    "filterCategory": "Catégorie de culture",
+    "filterRegion": "Région",
+    "filterFulfillment": "Mode de livraison",
+    "filterAllCategories": "Toutes les catégories",
+    "filterAllRegions": "Toutes les régions",
+    "filterAllFulfillment": "Retrait & Livraison",
+    "filterPickup": "Retrait",
+    "filterDelivery": "Livraison",
+    "searchBtn": "Rechercher",
+    "clearFilters": "Effacer les filtres",
+
+    "sectionTitle": "Produits disponibles",
+    "sectionSubtitle": "Grandes quantités issues de coopératives vérifiées. Confidentialité maintenue jusqu'à la confirmation de commande.",
+    "noResults": "Aucun produit ne correspond à votre recherche.",
+    "noResultsSub": "Essayez d'ajuster vos filtres ou votre recherche.",
+    "viewDetails": "Voir les détails & options de livraison",
+    "available": "{qty} disponible",
+    "harvestedOn": "Récolté le {date}",
+    "unitPrice": "{price} / kg",
+    "pickup": "Retrait",
+    "delivery": "Livraison",
+    "privacyChip": "Identité du vendeur protégée",
+    "regionLabel": "Région",
+    "categoryLabel": "Catégorie",
+
+    "statTitle": "Approuvé par les agriculteurs et acheteurs d'Afrique de l'Est",
+    "stat1Value": "2 400+",
+    "stat1Label": "Annonces actives",
+    "stat2Value": "180+",
+    "stat2Label": "Coopératives vérifiées",
+    "stat3Value": "42",
+    "stat3Label": "Districts couverts",
+    "stat4Value": "99%",
+    "stat4Label": "Conformité vie privée",
+
+    "howTitle": "Comment fonctionne Fresheri",
+    "how1Title": "Parcourir les produits",
+    "how1Desc": "Recherchez des produits en gros par culture, région ou mode de livraison.",
+    "how2Title": "Choisir la livraison",
+    "how2Desc": "Optez pour le retrait ou demandez une livraison à votre hôtel ou restaurant.",
+    "how3Title": "Confirmer & payer",
+    "how3Desc": "Les coordonnées de l'agriculteur ne sont révélées qu'après confirmation de la commande.",
+
+    "ctaTitle": "Prêt à vous approvisionner en produits frais ?",
+    "ctaSub": "Créez votre compte gratuit et commencez à acheter directement auprès de coopératives agricoles vérifiées.",
+    "ctaSignUp": "Créer un compte gratuit",
+    "ctaBrowse": "Parcourir les annonces",
+
+    "footerTagline": "Connecter agriculteurs et acheteurs à travers l'Afrique de l'Est.",
+    "footerPrivacy": "Politique de confidentialité",
+    "footerTerms": "Conditions d'utilisation",
+    "footerContact": "Contact",
+    "footerRights": "© {year} Fresheri. Tous droits réservés."
   }
 }
