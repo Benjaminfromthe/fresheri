@@ -40,17 +40,34 @@ export default function MarketingPanel() {
 
       {/* Main copy */}
       <div className="relative z-10 space-y-6">
-        {/* Produce visual placeholder */}
+        {/* Produce cards — real product images */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { emoji: "🍅", label: "Tomatoes",  qty: "2,000 kg" },
-            { emoji: "🌽", label: "Maize",     qty: "10,000 kg" },
-            { emoji: "🥬", label: "Spinach",   qty: "500 kg"   },
-          ].map(({ emoji, label, qty }) => (
-            <div key={label} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10 hover:bg-white/15 transition-colors">
-              <span className="text-3xl">{emoji}</span>
-              <p className="text-white text-xs font-semibold mt-2">{label}</p>
-              <p className="text-green-200 text-xs">{qty}</p>
+            { img: "/images/assets/products/tomatoes.jpg",       label: "Tomatoes",       qty: "1,500 kg" },
+            { img: "/images/assets/products/irish-potatoes.jpg", label: "Irish Potatoes", qty: "10,000 kg" },
+            { img: "/images/assets/products/cabbage.jpg",        label: "Cabbage",        qty: "5,000 kg" },
+            { img: "/images/assets/products/peppers.jpg",        label: "Peppers",        qty: "800 kg" },
+            { img: "/images/assets/products/green-bananas.jpg",  label: "Green Bananas",  qty: "2,000 kg" },
+            { img: "/images/assets/products/eggplant.jpg",       label: "Eggplant",       qty: "300 kg" },
+          ].map(({ img, label, qty }) => (
+            <div
+              key={label}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:bg-white/15 transition-colors"
+            >
+              {/* Product image — exact size, object-cover crop */}
+              <div className="w-full h-16 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img}
+                  alt={label}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <div className="px-2 py-2 text-center">
+                <p className="text-white text-xs font-semibold leading-tight truncate">{label}</p>
+                <p className="text-green-200 text-xs">{qty}</p>
+              </div>
             </div>
           ))}
         </div>
