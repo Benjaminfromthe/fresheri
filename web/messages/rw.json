@@ -2,7 +2,7 @@
   "common": {
     "appName": "Fresheri",
     "appTagline": "Isoko",
-    "loading": "Gutegereza…",
+    "loading": "Gutegerezaâ€¦",
     "save": "Bika",
     "cancel": "Reka",
     "back": "Subira",
@@ -21,7 +21,7 @@
     "tonUnit": "t",
     "minLabel": "Nibura",
     "stepLabel": "intambwe",
-    "customKg": "Andika kg…",
+    "customKg": "Andika kgâ€¦",
     "privacyProtected": "Ibanga rirarinzwe",
     "continueShoppingBtn": "Komeza Gura",
     "soldOut": "BIRANGIYE",
@@ -32,7 +32,7 @@
     "marketplace": "Isoko",
     "openFilters": "Fungura igenamiterere",
     "orderCart": "Gutumiza",
-    "cartAriaLabel": "Agasanduku — ibitondo {count}",
+    "cartAriaLabel": "Agasanduku â€” ibitondo {count}",
     "signIn": "Injira",
     "signUp": "Iyandikishe",
     "profile": "Umwirondoro Wanjye",
@@ -75,13 +75,13 @@
     "hasAccount": "Usanganywe konti?",
     "signInBtn": "Injira",
     "signUpBtn": "Fungura Konti",
-    "signingIn": "Gutegereza…",
-    "signingUp": "Gufungura konti…",
+    "signingIn": "Gutegerezaâ€¦",
+    "signingUp": "Gufungura kontiâ€¦",
     "orContinueWith": "cyangwa komeza na",
     "phoneHint": "urugero: +250781234567",
     "emailHint": "urugero: wowe@example.com",
 
-    "selectRole": "Ndi…",
+    "selectRole": "Ndiâ€¦",
     "roleHint": "Hitamo uruhare rukukuye",
     "roleFarmer": "Umuhinzi / Ikoperative",
     "roleFarmerDesc": "Tangaza umusaruro & Sangira USSD",
@@ -141,20 +141,20 @@
 
   "marketplace": {
     "heroTitle": "Isoko ry'Ubuhinzi Mu Bwinshi",
-    "heroSubtitle": "Gura neza mu binyabuzima by'abahinzi. Ibanga rirarinzwe — ubuvanganzo bw'umuhinzi bwerekanywa nyuma yo guhitamo uburyo bwo gutwara.",
+    "heroSubtitle": "Gura neza mu binyabuzima by'abahinzi. Ibanga rirarinzwe â€” ubuvanganzo bw'umuhinzi bwerekanywa nyuma yo guhitamo uburyo bwo gutwara.",
     "activeListings": "Ibyatanzwe",
     "cooperatives": "Amakoperative",
     "cropCategories": "Ubwoko bw'Ibitera",
     "listingsAvailable": "Ibitondo {count} biraboneka",
     "noListingsTitle": "Nta bitondo bihuye n'igenamiterere ryawe",
     "noListingsClear": "Siba igenamiterere ryose",
-    "searchPlaceholder": "Shakisha umusaruro, koperative, akarere…",
+    "searchPlaceholder": "Shakisha umusaruro, koperative, akarereâ€¦",
     "harvestedOn": "Harvested {date}",
     "remaining": "{qty} bisigaye",
-    "addToOrderPickup": "Ongeraho · Gufata",
-    "addToOrderDelivery": "Ongeraho · Gutumiza",
+    "addToOrderPickup": "Ongeraho Â· Gufata",
+    "addToOrderDelivery": "Ongeraho Â· Gutumiza",
     "addedConfirmation": "Byongewe!",
-    "minQtyHint": "Nibura {min} kg · intambwe {step} kg",
+    "minQtyHint": "Nibura {min} kg Â· intambwe {step} kg",
     "inclDelivery": "hamwe n'ubutumire",
     "cooperativeIn": "Ikoperative y'Abahinzi i {region}",
     "listingFound": "Ibitonbo {count} bibonetse",
@@ -173,19 +173,19 @@
     "fulfillmentAll": "Uburyo Bwose",
     "fulfillmentPickup": "Gufata Gusa",
     "fulfillmentDelivery": "Gutumiza Gusa",
-    "customKgPlaceholder": "Andika kg…"
+    "customKgPlaceholder": "Andika kgâ€¦"
   },
 
   "fulfillment": {
     "method": "Uburyo bwo Gutwara",
     "selfPickup": "Gufata mu Koperative",
     "selfPickupCompact": "Gufata",
-    "selfPickupDescription": "Fata wenyine — aderesi n'inomero za telefoni bizafunguliwa nyuma y'iyemeza",
+    "selfPickupDescription": "Fata wenyine â€” aderesi n'inomero za telefoni bizafunguliwa nyuma y'iyemeza",
     "selfPickupFree": "Ubuntu",
     "selfPickupUnlockBadge": "Aderesi izafungurwa nyuma y'itumiza",
     "delivery": "Saba Koherezwa ku Adiresi Yanjye",
     "deliveryCompact": "Koherezwa",
-    "deliveryDescription": "Umunyamabuye atumwe — telefoni y'umuhinzi irahishwa",
+    "deliveryDescription": "Umunyamabuye atumwe â€” telefoni y'umuhinzi irahishwa",
     "pickupLockMessage": "Aderesi nziza y'aho gufata n'inomero ya telefoni bizafungurwa nyuma yo kwemeza itumiza."
   },
 
@@ -204,14 +204,14 @@
     "itemCount": "Ibitonbo {count}",
     "chooseDelivery": "Hitamo Uburyo",
     "reviewOrder": "Subiramo Itumiza",
-    "placeOrder": "Tuma Itumiza · {total}",
-    "placing": "Kohereza…",
+    "placeOrder": "Tuma Itumiza Â· {total}",
+    "placing": "Koherezaâ€¦",
     "emptyCart": "Agasanduku kawe karagwa.",
     "remove": "Kuraho {name}",
     "lineTotal": "{currency} {amount}",
     "subtotal": "Igiteranyo cy'ibitera",
     "deliveryFee": "Amafaranga yo gutwara",
-    "freePickup": "Ubuntu — Gufata",
+    "freePickup": "Ubuntu â€” Gufata",
     "total": "Igiteranyo",
     "items": "Ibitonbo",
     "fulfillmentLabel": "Uburyo",
@@ -222,11 +222,11 @@
     "smsConfirmationNote": "Ubutumwa bwa SMS butumwe kuri telefoni yawe.",
     "deliveryAddressLabel": "Aderesi yo Koherezwa",
     "deliveryAddressRequired": "Aderesi yo koherezwa irakenewe.",
-    "deliveryAddressPlaceholder": "urugero: Kigali — KG 7 Ave, Hotel Rwanda",
+    "deliveryAddressPlaceholder": "urugero: Kigali â€” KG 7 Ave, Hotel Rwanda",
     "orderNumber": "Itumiza #{number}",
 
     "pickupUnlocked": "Amakuru yo Gufata Afunguwe",
-    "pickupUnlockedSub": "Yihariye itumiza ryawe — banza ubyegerezeho ibanga",
+    "pickupUnlockedSub": "Yihariye itumiza ryawe â€” banza ubyegerezeho ibanga",
     "cooperativeFarm": "Koperative / Ubutaka",
     "pickupLocation": "Aho Gufata",
     "directContact": "Inomero ya Telefoni",
@@ -246,13 +246,12 @@
 
     "preConfirmPickupNote": "Kwemeza itumiza bizafungura aderesi nziza n'inomero ya telefoni by'umuhinzi gusa kuri wowe.",
     "contactNotAvailable": "Amakuru yo gufata araboneka gusa ku matumiza yemejwe ya SELF_PICKUP."
-  }
-}
+  },
 
-  ,"landing": {
+  "landing": {
     "heroTitle": "Umusaruro Mwiza,\nUvuye Kuri Ferme.",
     "heroSubtitle": "Gura umusaruro mu bwinshi uvuye ku makoperative y'abahinzi yemejwe muri Afurika y'Iburasirazuba. Ibanga ririnzwe, igiciro kigaragara, uburyo bwo gutwara.",
-    "heroSearchPlaceholder": "Shakisha umusaruro, akarere cyangwa koperative…",
+    "heroSearchPlaceholder": "Shakisha umusaruro, akarere cyangwa koperativeâ€¦",
     "filterCategory": "Ubwoko bw'Ibitera",
     "filterRegion": "Akarere",
     "filterFulfillment": "Uburyo bwo Gutwara",
@@ -263,7 +262,6 @@
     "filterDelivery": "Koherezwa",
     "searchBtn": "Shakisha",
     "clearFilters": "Siba igenamiterere",
-
     "sectionTitle": "Umusaruro Uraboneka",
     "sectionSubtitle": "Umubare munini w'umusaruro uvuye ku makoperative yemejwe. Ibanga ry'umuntu ririnzwe kugeza itumiza ryemejwe.",
     "noResults": "Nta musaruro uhuye n'inzira yawe.",
@@ -277,7 +275,6 @@
     "privacyChip": "Umuntu w'umuhinzi ararinzwe",
     "regionLabel": "Akarere",
     "categoryLabel": "Ubwoko",
-
     "statTitle": "Twizingirwa n'abahinzi n'abaguzi muri Afurika y'Iburasirazuba",
     "stat1Value": "2,400+",
     "stat1Label": "Ibyatanzwe byihariye",
@@ -287,7 +284,6 @@
     "stat3Label": "Uturere twakoreshejwe",
     "stat4Value": "99%",
     "stat4Label": "Kurinda ibanga",
-
     "howTitle": "Uburyo Fresheri ikora",
     "how1Title": "Shakisha umusaruro",
     "how1Desc": "Shakisha umusaruro mu bwinshi ukoresheje ubwoko, akarere, cyangwa uburyo bwo gutwara.",
@@ -295,16 +291,14 @@
     "how2Desc": "Hitamo gufata bwite cyangwa saba koherezwa ku hoteji cyangwa resitora yawe.",
     "how3Title": "Emeza & wishyure",
     "how3Desc": "Amakuru y'umuhinzi arekerwa gusa nyuma y'iyemeza ry'itumiza.",
-
     "ctaTitle": "Witeguye gusura umusaruro mwiza?",
     "ctaSub": "Fungura konti ya ubuntu ugatangira kugura neza mu makoperative y'abahinzi yemejwe.",
     "ctaSignUp": "Fungura Konti ya Ubuntu",
     "ctaBrowse": "Reba Ibyatanzwe",
-
     "footerTagline": "Guhuza abahinzi n'abaguzi muri Afurika y'Iburasirazuba.",
     "footerPrivacy": "Politiki y'Ibanga",
     "footerTerms": "Amabwiriza y'Imikoreshereze",
     "footerContact": "Twandikire",
-    "footerRights": "© {year} Fresheri. Uburenganzira bwose burindwa."
+    "footerRights": "Â© {year} Fresheri. Uburenganzira bwose burindwa."
   }
 }
