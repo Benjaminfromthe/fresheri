@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Phone, Loader2 } from "lucide-react";
 import { signInSchema, SignInValues } from "@/lib/auth/schemas";
+import { authSignIn, saveSession }    from "@/lib/api-client";
 import PasswordInput from "./PasswordInput";
 import FormField     from "./FormField";
 
@@ -18,6 +19,7 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -26,9 +28,15 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   });
 
   const onSubmit = async (_data: SignInValues) => {
-    // TODO: wire to POST /api/auth/signin when backend auth endpoint is ready.
-    await new Promise((r) => setTimeout(r, 600));
-    onSuccess?.();
+    try {
+      const result = await authSignIn({ phone: _data.phone, password: _data.password });
+      saveSession(result);
+      onSuccess?.();
+    } catch (err) {
+      // Surface the error in the form — set a field error on phone
+      const msg = err instanceof Error ? err.message : "Sign in failed. Please try again.";
+      setError("phone", { message: msg });
+    }
   };
 
   // Safe error translator — never throws on missing keys

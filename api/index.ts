@@ -15,6 +15,7 @@ import { defaultSmsService } from "../src/lib/sms";
 import { createUssdRouter }   from "../src/ussd/ussd.routes";
 import { createOrderRouter }  from "../src/orders/order.routes";
 import { createListingRouter } from "../src/listings/listing.routes";
+import { createAuthRouter }   from "../src/auth/auth.routes";
 import { ErrorCode }           from "../src/constants/errors";
 
 // ── Bootstrap app ────────────────────────────────────────────
@@ -50,6 +51,7 @@ app.get("/health", (_req, res) => {
 app.use("/ussd",     createUssdRouter(prisma));
 app.use("/orders",   createOrderRouter(prisma, defaultSmsService));
 app.use("/listings", createListingRouter(prisma));
+app.use("/auth",     createAuthRouter(prisma));
 
 // ── 404 ──────────────────────────────────────────────────────
 

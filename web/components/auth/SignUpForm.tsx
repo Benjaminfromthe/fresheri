@@ -11,6 +11,7 @@ import {
   getSignUpSchema,
   SignUpValues,
 } from "@/lib/auth/schemas";
+import { authSignUp, saveSession } from "@/lib/api-client";
 
 import RoleToggle       from "./RoleToggle";
 import PasswordInput    from "./PasswordInput";
@@ -180,11 +181,27 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
   const onSubmit = async (_data: SignUpValues) => {
     setSubmitError(null);
     try {
-      // TODO: replace with real API call POST /api/auth/signup
-      await new Promise((r) => setTimeout(r, 600));
+      const result = await authSignUp({
+        firstName:          _data.firstName as string,
+        lastName:           _data.lastName  as string,
+        phone:              _data.phone     as string,
+        password:           _data.password  as string,
+        role:               role,
+        farmName:           (_data as Record<string,string>).farmName,
+        cooperativeRegNumber: (_data as Record<string,string>).cooperativeRegNumber,
+        farmLocation:       (_data as Record<string,string>).farmLocation,
+        businessName:       (_data as Record<string,string>).businessName,
+        businessRegNumber:  (_data as Record<string,string>).businessRegNumber,
+        businessAddress:    (_data as Record<string,string>).businessAddress,
+        vehicleType:        (_data as Record<string,string>).vehicleType,
+        vehicleRegNumber:   (_data as Record<string,string>).vehicleRegNumber,
+        operatingRegion:    (_data as Record<string,string>).operatingRegion,
+      });
+      saveSession(result);
       onSuccess?.();
-    } catch {
-      setSubmitError("Something went wrong. Please try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setSubmitError(msg);
     }
   };
 

@@ -151,3 +151,95 @@ export async function fetchListingById(
 export async function checkHealth(): Promise<{ status: string; timestamp: string }> {
   return apiFetch("/health");
 }
+
+// ── Auth ─────────────────────────────────────────────────────
+
+export interface AuthResult {
+  token:     string;
+  userId:    string;
+  firstName: string;
+  lastName:  string;
+  role:      string;
+}
+
+export interface SignUpPayload {
+  firstName:          string;
+  lastName:           string;
+  phone:              string;
+  password:           string;
+  role:               string;
+  farmName?:          string;
+  cooperativeRegNumber?: string;
+  farmLocation?:      string;
+  businessName?:      string;
+  businessRegNumber?: string;
+  businessAddress?:   string;
+  vehicleType?:       string;
+  vehicleRegNumber?:  string;
+  operatingRegion?:   string;
+}
+
+export interface SignInPayload {
+  phone:    string;
+  password: string;
+}
+
+/** POST /auth/signup — creates account in Neon DB, returns JWT */
+export async function authSignUp(payload: SignUpPayload): Promise<AuthResult> {
+  const res = await apiFetch<{ data: AuthResult }>("/auth/signup", {
+    method: "POST",
+    body:   JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+/** POST /auth/signin — phone+password, returns JWT */
+export async function authSignIn(payload: SignInPayload): Promise<AuthResult> {
+  const res = await apiFetch<{ data: AuthResult }>("/auth/signin", {
+    method: "POST",
+    body:   JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+/** POST /auth/google — Google ID token, returns JWT */
+export async function authGoogle(idToken: string): Promise<AuthResult> {
+  const res = await apiFetch<{ data: AuthResult }>("/auth/google", {
+    method: "POST",
+    body:   JSON.stringify({ idToken }),
+  });
+  return res.data;
+}
+
+// ── Session helpers (localStorage) ───────────────────────────
+
+const TOKEN_KEY = "fresheri_token";
+const USER_KEY  = "fresheri_user";
+
+export function saveSession(result: AuthResult): void {
+  try {
+    localStorage.setItem(TOKEN_KEY, result.token);
+    localStorage.setItem(USER_KEY, JSON.stringify({
+      userId: result.userId,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      role: result.role,
+    }));
+  } catch { /* SSR safe */ }
+}
+
+export function clearSession(): void {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  } catch { /* SSR safe */ }
+}
+
+export function getStoredUser(): AuthResult | null {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const user  = localStorage.getItem(USER_KEY);
+    if (!token || !user) return null;
+    return { token, ...JSON.parse(user) };
+  } catch { return null; }
+}

@@ -14,6 +14,7 @@ import { defaultSmsService } from "./lib/sms";
 import { createUssdRouter }   from "./ussd/ussd.routes";
 import { createOrderRouter }  from "./orders/order.routes";
 import { createListingRouter } from "./listings/listing.routes";
+import { createAuthRouter }   from "./auth/auth.routes";
 import { ErrorCode }           from "./constants/errors";
 
 const app  = express();
@@ -31,6 +32,7 @@ app.get("/health", (_req, res) => {
 app.use("/ussd",     createUssdRouter(prisma));
 app.use("/orders",   createOrderRouter(prisma, defaultSmsService));
 app.use("/listings", createListingRouter(prisma));
+app.use("/auth",     createAuthRouter(prisma));
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: ErrorCode.NOT_FOUND, message: "Not found." });
