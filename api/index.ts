@@ -29,13 +29,20 @@ app.use(express.json());
 
 // ── CORS ─────────────────────────────────────────────────────
 
+const ALLOWED_ORIGINS = [
+  "https://fresheri.vercel.app",
+  "https://fresheri-v6kz.vercel.app",
+  process.env.FRONTEND_URL,
+  "http://localhost:3001", // local web dev
+].filter(Boolean) as string[];
+
 app.use((_req: Request, res: Response, next: NextFunction) => {
-  res.setHeader("Access-Control-Allow-Origin",
-    process.env.FRONTEND_URL ?? "*");
-  res.setHeader("Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers",
-    "Content-Type,Authorization,x-user-id,x-user-role");
+  const origin = _req.headers.origin ?? "";
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  res.setHeader("Access-Control-Allow-Origin", allowed);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,x-user-id,x-user-role");
   if (_req.method === "OPTIONS") { res.sendStatus(204); return; }
   next();
 });

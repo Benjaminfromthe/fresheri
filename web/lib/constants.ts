@@ -7,6 +7,11 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://fresheri-v6kz.vercel.app";
 
+// Log warning in development if env var is missing
+if (typeof window !== "undefined" && !process.env.NEXT_PUBLIC_API_URL) {
+  console.warn("[Fresheri] NEXT_PUBLIC_API_URL is not set — using fallback:", API_BASE_URL);
+}
+
 /** Flat base delivery fee shown in UI (KES/RWF) */
 export const BASE_DELIVERY_FEE = 500;
 

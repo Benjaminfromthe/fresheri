@@ -262,11 +262,14 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
         </div>
       )}
 
-      {/* Submit error */}
+      {/* Submit error — fixed at top, always visible */}
       {submitError && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
-          <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-600">{submitError}</p>
+        <div className="flex items-start gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-3 py-3 animate-pulse">
+          <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-bold text-red-700">Sign up failed</p>
+            <p className="text-xs text-red-600 mt-0.5">{submitError}</p>
+          </div>
         </div>
       )}
 
