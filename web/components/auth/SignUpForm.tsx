@@ -160,10 +160,14 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SignUpValues>({
     resolver: zodResolver(schema),
-    mode: "onTouched", // show errors as soon as field is touched & left
+    mode: "onTouched",
+    defaultValues: {
+      role: AuthRole.FARMER,
+    } as Partial<SignUpValues>,
   });
 
   const passwordValue = (watch("password" as keyof SignUpValues) as string) ?? "";
@@ -171,11 +175,15 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
   const handleRoleChange = useCallback(
     (newRole: AuthRole) => {
       setRole(newRole);
-      reset();
+      reset({
+        role: newRole,
+      } as Partial<SignUpValues>);
       setWatchedPassword("");
       setSubmitError(null);
+      // Keep role in sync with RHF after reset
+      setTimeout(() => setValue("role" as keyof SignUpValues, newRole as never), 0);
     },
-    [reset]
+    [reset, setValue]
   );
 
   const onSubmit = async (_data: SignUpValues) => {
@@ -245,6 +253,9 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate className="space-y-4">
+
+      {/* Hidden role field — keeps RHF + Zod in sync with RoleToggle state */}
+      <input type="hidden" {...register("role" as keyof SignUpValues)} value={role} />
 
       {/* Role selector */}
       <RoleToggle value={role} onChange={handleRoleChange} />
