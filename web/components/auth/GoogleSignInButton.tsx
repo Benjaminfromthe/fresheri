@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useGoogleLogin } from "@react-oauth/google";
 import { Loader2 } from "lucide-react";
 import { authGoogle, saveSession } from "@/lib/api-client";
 
@@ -21,26 +20,18 @@ function GoogleLogo() {
   );
 }
 
-export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
+// Inner button — only rendered when GoogleOAuthProvider is available
+function GoogleLoginButton({ onSuccess }: GoogleSignInButtonProps) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useGoogleLogin } = require("@react-oauth/google");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
-
   const login = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
+    onSuccess: async (tokenResponse: { access_token: string }) => {
       setLoading(true);
       setError(null);
       try {
-        // Exchange access_token for user info then send id_token to backend
-        // @react-oauth/google returns access_token; we get user info via Google API
-        const userInfoRes = await fetch(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
-        );
-        const userInfo = await userInfoRes.json() as { sub: string; email: string; name: string; picture: string };
-
-        // We send the access token as the idToken — backend verifies email
         const result = await authGoogle(tokenResponse.access_token);
         saveSession(result);
         onSuccess();
@@ -56,9 +47,6 @@ export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProp
     },
   });
 
-  // If no Google Client ID configured, show nothing (don't break the form)
-  if (!clientId) return null;
-
   return (
     <div className="space-y-2">
       <button
@@ -67,16 +55,18 @@ export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProp
         disabled={loading}
         className="w-full flex items-center justify-center gap-3 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-60"
       >
-        {loading ? (
-          <Loader2 size={18} className="animate-spin text-gray-400" />
-        ) : (
-          <GoogleLogo />
-        )}
+        {loading ? <Loader2 size={18} className="animate-spin text-gray-400" /> : <GoogleLogo />}
         {loading ? "Signing in…" : "Continue with Google"}
       </button>
-      {error && (
-        <p className="text-xs text-red-500 text-center">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
     </div>
   );
+}
+
+export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
+  // Only render when client ID is configured — prevents any crash when not set
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  if (!clientId) return null;
+
+  return <GoogleLoginButton onSuccess={onSuccess} />;
 }
