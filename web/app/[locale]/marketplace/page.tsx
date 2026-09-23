@@ -10,6 +10,7 @@ import Footer           from "@/components/layout/Footer";
 import FilterSidebar    from "@/components/marketplace/FilterSidebar";
 import ProduceCard      from "@/components/marketplace/ProduceCard";
 import CheckoutModal    from "@/components/marketplace/CheckoutModal";
+import { toast }        from "@/components/ui/Toaster";
 
 import { MOCK_LISTINGS }        from "@/lib/mock-listings";
 import { placeOrderBatch }      from "@/lib/api-client";
@@ -58,6 +59,7 @@ function applyFilters(
 export default function MarketplacePage() {
   const t  = useTranslations("marketplace");
   const tc = useTranslations("common");
+  const tt = useTranslations("toast");
 
   // Read ?search= param from landing page "View Details" click
   const searchParams = useSearchParams();
@@ -92,8 +94,9 @@ export default function MarketplacePage() {
         }
         return [...prev, { listing, quantityKg: qty, selectedFulfillment: fulfillment }];
       });
+      toast.success(tt("cartAdded", { name: listing.produceName }));
     },
-    []
+    [tt]
   );
 
   const handleRemoveFromCart = useCallback(
@@ -103,19 +106,25 @@ export default function MarketplacePage() {
 
   const handlePlaceOrder = useCallback(
     async (deliveryOption: DeliveryOption, deliveryAddress: string): Promise<OrderResult[]> => {
-      const results = await placeOrderBatch(
-        cart.map((item) => ({
-          buyerId:         PLACEHOLDER_BUYER_ID,
-          listingId:       item.listing.id,
-          quantityKg:      item.quantityKg,
-          deliveryOption,
-          deliveryAddress: deliveryAddress || undefined,
-        }))
-      );
-      setCart([]);
-      return results;
+      try {
+        const results = await placeOrderBatch(
+          cart.map((item) => ({
+            buyerId:         PLACEHOLDER_BUYER_ID,
+            listingId:       item.listing.id,
+            quantityKg:      item.quantityKg,
+            deliveryOption,
+            deliveryAddress: deliveryAddress || undefined,
+          }))
+        );
+        setCart([]);
+        toast.success(tt("orderSuccess"));
+        return results;
+      } catch (err) {
+        toast.error(tt("orderError"));
+        throw err;
+      }
     },
-    [cart]
+    [cart, tt]
   );
 
   const cartCount = cart.length;

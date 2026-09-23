@@ -6,6 +6,8 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
+import Toaster           from "@/components/ui/Toaster";
+import ErrorBoundary     from "@/components/ui/ErrorBoundary";
 import "../globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -40,7 +42,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <GoogleAuthProvider>
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+            <Toaster />
           </GoogleAuthProvider>
         </NextIntlClientProvider>
       </body>

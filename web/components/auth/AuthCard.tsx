@@ -4,24 +4,38 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Sprout } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import LanguageSwitcher   from "@/components/LanguageSwitcher";
-import MarketingPanel     from "./MarketingPanel";
-import SignInForm         from "./SignInForm";
-import SignUpForm         from "./SignUpForm";
-import GoogleSignInButton from "./GoogleSignInButton";
+import { toast }            from "@/components/ui/Toaster";
+import LanguageSwitcher     from "@/components/LanguageSwitcher";
+import MarketingPanel       from "./MarketingPanel";
+import SignInForm            from "./SignInForm";
+import SignUpForm            from "./SignUpForm";
+import GoogleSignInButton    from "./GoogleSignInButton";
 
 type Tab = "signin" | "signup";
 
 export default function AuthCard() {
   const t      = useTranslations("auth");
+  const tt     = useTranslations("toast");
   const router = useRouter();
   const [tab, setTab]       = useState<Tab>("signin");
   const [, startTransition] = useTransition();
 
   const switchTab = (next: Tab) => startTransition(() => setTab(next));
 
-  // On any successful auth → go directly to marketplace, no overlay
-  const handleSuccess = () => router.replace("/marketplace");
+  const handleSignupSuccess = () => {
+    toast.success(tt("signupSuccess"));
+    router.replace("/marketplace");
+  };
+
+  const handleSigninSuccess = () => {
+    toast.success(tt("signinSuccess"));
+    router.replace("/marketplace");
+  };
+
+  const handleGoogleSuccess = () => {
+    toast.success(tt("signinSuccess"));
+    router.replace("/marketplace");
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -81,7 +95,7 @@ export default function AuthCard() {
           </div>
 
           {/* Google sign-in button */}
-          <GoogleSignInButton onSuccess={handleSuccess} />
+          <GoogleSignInButton onSuccess={handleGoogleSuccess} />
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-4">
@@ -92,9 +106,9 @@ export default function AuthCard() {
 
           {/* Phone/password form */}
           {tab === "signin" ? (
-            <SignInForm onSuccess={handleSuccess} />
+            <SignInForm onSuccess={handleSigninSuccess} />
           ) : (
-            <SignUpForm onSuccess={handleSuccess} />
+            <SignUpForm onSuccess={handleSignupSuccess} />
           )}
 
           {/* Mobile privacy note */}

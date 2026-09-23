@@ -2,7 +2,7 @@
   "common": {
     "appName": "Fresheri",
     "appTagline": "Marketplace",
-    "loading": "Loading…",
+    "loading": "Loadingâ€¦",
     "save": "Save",
     "cancel": "Cancel",
     "back": "Back",
@@ -21,7 +21,7 @@
     "tonUnit": "t",
     "minLabel": "Min",
     "stepLabel": "step",
-    "customKg": "Custom kg…",
+    "customKg": "Custom kgâ€¦",
     "privacyProtected": "Privacy protected",
     "continueShoppingBtn": "Continue Shopping",
     "soldOut": "SOLD OUT",
@@ -32,7 +32,7 @@
     "marketplace": "Marketplace",
     "openFilters": "Open filters",
     "orderCart": "Order",
-    "cartAriaLabel": "Cart — {count} items",
+    "cartAriaLabel": "Cart â€” {count} items",
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "profile": "My Profile",
@@ -75,13 +75,13 @@
     "hasAccount": "Already have an account?",
     "signInBtn": "Sign In",
     "signUpBtn": "Create Account",
-    "signingIn": "Signing in…",
-    "signingUp": "Creating account…",
+    "signingIn": "Signing inâ€¦",
+    "signingUp": "Creating accountâ€¦",
     "orContinueWith": "or continue with",
     "phoneHint": "e.g. +250781234567",
     "emailHint": "e.g. you@example.com",
 
-    "selectRole": "I am a…",
+    "selectRole": "I am aâ€¦",
     "roleHint": "Choose the role that best describes you",
     "roleFarmer": "Farmer / Cooperative",
     "roleFarmerDesc": "Publish produce & sync via USSD",
@@ -141,20 +141,20 @@
 
   "marketplace": {
     "heroTitle": "Bulk Produce Marketplace",
-    "heroSubtitle": "Source directly from verified farmer cooperatives. Privacy-protected — farmer identity revealed only upon your confirmed fulfillment choice.",
+    "heroSubtitle": "Source directly from verified farmer cooperatives. Privacy-protected â€” farmer identity revealed only upon your confirmed fulfillment choice.",
     "activeListings": "Active Listings",
     "cooperatives": "Cooperatives",
     "cropCategories": "Crop Categories",
     "listingsAvailable": "{count} listing{count, plural, one {} other {s}} available",
     "noListingsTitle": "No listings match your filters",
     "noListingsClear": "Clear all filters",
-    "searchPlaceholder": "Search produce, cooperative, region…",
+    "searchPlaceholder": "Search produce, cooperative, regionâ€¦",
     "harvestedOn": "Harvested {date}",
     "remaining": "{qty} available",
-    "addToOrderPickup": "Add to Order · Pickup",
-    "addToOrderDelivery": "Add to Order · Delivery",
+    "addToOrderPickup": "Add to Order Â· Pickup",
+    "addToOrderDelivery": "Add to Order Â· Delivery",
     "addedConfirmation": "Added!",
-    "minQtyHint": "Min {min} kg · step {step} kg",
+    "minQtyHint": "Min {min} kg Â· step {step} kg",
     "inclDelivery": "incl. delivery",
     "cooperativeIn": "Farmer Cooperative in {region}",
     "listingFound": "{count} listing{count, plural, one {} other {s}} found",
@@ -173,19 +173,19 @@
     "fulfillmentAll": "All Options",
     "fulfillmentPickup": "Pickup Only",
     "fulfillmentDelivery": "Delivery Only",
-    "customKgPlaceholder": "Custom kg…"
+    "customKgPlaceholder": "Custom kgâ€¦"
   },
 
   "fulfillment": {
     "method": "Fulfillment Method",
     "selfPickup": "Self-Pickup from Cooperative",
     "selfPickupCompact": "Pickup",
-    "selfPickupDescription": "Collect directly — exact location & contact unlocked after confirmation",
+    "selfPickupDescription": "Collect directly â€” exact location & contact unlocked after confirmation",
     "selfPickupFree": "Free",
     "selfPickupUnlockBadge": "Location unlocked post-order",
     "delivery": "Request Delivery to My Address",
     "deliveryCompact": "Delivery",
-    "deliveryDescription": "Logistics agent dispatched — farmer contact stays private",
+    "deliveryDescription": "Logistics agent dispatched â€” farmer contact stays private",
     "pickupLockMessage": "Exact pickup location and contact details will be unlocked upon order confirmation."
   },
 
@@ -204,14 +204,14 @@
     "itemCount": "{count} item{count, plural, one {} other {s}}",
     "chooseDelivery": "Choose Fulfillment",
     "reviewOrder": "Review Order",
-    "placeOrder": "Place Order · {total}",
-    "placing": "Placing…",
+    "placeOrder": "Place Order Â· {total}",
+    "placing": "Placingâ€¦",
     "emptyCart": "Your order is empty.",
     "remove": "Remove {name}",
     "lineTotal": "{currency} {amount}",
     "subtotal": "Produce subtotal",
     "deliveryFee": "Delivery fee",
-    "freePickup": "Free — Self pickup",
+    "freePickup": "Free â€” Self pickup",
     "total": "Total",
     "items": "Items",
     "fulfillmentLabel": "Fulfillment",
@@ -222,11 +222,11 @@
     "smsConfirmationNote": "SMS confirmation sent to your phone.",
     "deliveryAddressLabel": "Delivery Address",
     "deliveryAddressRequired": "Delivery address is required.",
-    "deliveryAddressPlaceholder": "e.g. Kigali — KG 7 Ave, Hotel des Mille Collines",
+    "deliveryAddressPlaceholder": "e.g. Kigali â€” KG 7 Ave, Hotel des Mille Collines",
     "orderNumber": "Order #{number}",
 
     "pickupUnlocked": "Pickup Details Unlocked",
-    "pickupUnlockedSub": "Exclusive to your order — please keep this confidential",
+    "pickupUnlockedSub": "Exclusive to your order â€” please keep this confidential",
     "cooperativeFarm": "Cooperative / Farm",
     "pickupLocation": "Pickup Location",
     "directContact": "Direct Contact",
@@ -251,7 +251,7 @@
   "landing": {
     "heroTitle": "Fresh Produce,\nDirect from the Farm.",
     "heroSubtitle": "Buy verified bulk produce from farmer cooperatives across East Africa. Privacy-first, transparent pricing, flexible fulfillment.",
-    "heroSearchPlaceholder": "Search crops, region or cooperative…",
+    "heroSearchPlaceholder": "Search crops, region or cooperativeâ€¦",
     "filterCategory": "Crop Category",
     "filterRegion": "Region",
     "filterFulfillment": "Fulfillment",
@@ -299,6 +299,31 @@
     "footerPrivacy": "Privacy Policy",
     "footerTerms": "Terms of Service",
     "footerContact": "Contact",
-    "footerRights": "© {year} Fresheri. All rights reserved."
+    "footerRights": "Â© {year} Fresheri. All rights reserved."
+  }
+
+  ,"toast": {
+    "signupSuccess": "Account created successfully! Welcome to Fresheri.",
+    "signinSuccess": "Signed in successfully. Welcome back!",
+    "signoutSuccess": "Signed out successfully.",
+    "orderSuccess": "Order placed successfully!",
+    "orderError": "Failed to place order. Please try again.",
+    "cartAdded": "{name} added to your order.",
+    "cartRemoved": "Item removed from your order.",
+    "genericError": "Something went wrong. Please try again.",
+    "networkError": "No internet connection. Please check your network.",
+    "copied": "Copied!",
+    "saved": "Saved.",
+    "profileUpdated": "Your profile has been updated."
+  },
+
+  "errors": {
+    "pageNotFound": "Page not found",
+    "pageNotFoundDesc": "The page you are looking for does not exist. Try going back home.",
+    "goHome": "Go back home",
+    "somethingWrong": "Something went wrong",
+    "somethingWrongDesc": "An unexpected error occurred. Please try again.",
+    "tryAgain": "Try again",
+    "contactSupport": "Contact support"
   }
 }
