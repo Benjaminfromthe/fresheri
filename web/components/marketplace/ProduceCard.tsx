@@ -68,24 +68,29 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
   const gradient   = CATEGORY_GRADIENTS[listing.categoryName] ?? "from-green-400 to-teal-600";
   const emoji      = CATEGORY_EMOJIS[listing.categoryName] ?? "🌿";
   const imageUrl   = listing.imageUrls[0] ?? null;
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError]   = useState(false);
 
   return (
     <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
 
       {/* ── Image — real photo or gradient fallback ── */}
       <div className={`relative h-44 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
-        {imageUrl ? (
+        {imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
             alt={listing.produceName}
-            className="w-full h-full object-cover absolute inset-0"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => { setImgError(true); setImgLoaded(false); }}
             loading="lazy"
           />
-        ) : null}
-        {/* Emoji shown when no image or image fails to load */}
-        <span className="text-6xl select-none z-0" aria-hidden="true">{emoji}</span>
+        )}
+        {/* Emoji shown only when no image or image failed */}
+        {(!imageUrl || !imgLoaded || imgError) && (
+          <span className="text-6xl select-none" aria-hidden="true">{emoji}</span>
+        )}
 
         {/* Category badge */}
         <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full z-10">

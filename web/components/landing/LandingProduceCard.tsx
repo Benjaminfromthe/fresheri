@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter }        from "@/i18n/navigation";
 import {
   MapPin, CalendarCheck, Package, Truck,
   BadgeCheck, ShieldCheck, Leaf, ArrowRight,
 } from "lucide-react";
+import { useRouter } from "@/i18n/navigation";
 import type { LandingProduce } from "@/lib/landing/produce-data";
 import { formatQty }           from "@/lib/landing/produce-data";
 
@@ -23,6 +24,8 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
   const t      = useTranslations("landing");
   const tc     = useTranslations("common");
   const router = useRouter();
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError]   = useState(false);
 
   const {
     produceName, variety, region, sellerDisplayName, sellerVerified,
@@ -43,19 +46,20 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
 
       {/* ── Image / Gradient placeholder ── */}
       <div className={`relative h-44 bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center overflow-hidden`}>
-        {/* Actual image — falls back to gradient when file absent */}
+        {/* Real product image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageSrc}
           alt={produceName}
-          className="w-full h-full object-cover absolute inset-0"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => { setImgError(true); setImgLoaded(false); }}
           loading="lazy"
         />
-        {/* Emoji fallback shown when image hidden */}
-        <span className="text-6xl select-none group-[img-hidden]:block z-0" aria-hidden="true">
-          {emoji}
-        </span>
+        {/* Emoji shown ONLY when image fails or hasn't loaded yet */}
+        {(!imgLoaded || imgError) && (
+          <span className="text-6xl select-none" aria-hidden="true">{emoji}</span>
+        )}
 
         {/* Category badge */}
         <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full">

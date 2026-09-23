@@ -1,12 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Sprout } from "lucide-react";
+import { Sprout, Mail } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 export default function Footer() {
-  const t  = useTranslations("landing");
-  const tc = useTranslations("common");
+  const t    = useTranslations("landing");
+  const tc   = useTranslations("common");
   const year = new Date().getFullYear();
 
   return (
@@ -25,22 +25,35 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links */}
-          <nav className="flex flex-wrap gap-4 text-sm" aria-label="Footer">
-            {[
-              { label: t("footerPrivacy"),  href: "/privacy"  },
-              { label: t("footerTerms"),    href: "/terms"    },
-              { label: t("footerContact"),  href: "/contact"  },
-            ].map(({ label, href }) => (
-              <Link key={href} href={href} className="hover:text-white transition-colors">
-                {label}
-              </Link>
-            ))}
+          {/* Footer links */}
+          <nav className="flex flex-wrap gap-5 text-sm" aria-label="Footer navigation">
+            <Link href="/marketplace" className="hover:text-white transition-colors">
+              Marketplace
+            </Link>
+            <Link href="/#how" className="hover:text-white transition-colors">
+              {t("footerTerms")}
+            </Link>
+            <a
+              href="mailto:support@fresheri.app"
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
+            >
+              <Mail size={12} />
+              {t("footerContact")}
+            </a>
+            <a
+              href="mailto:privacy@fresheri.app"
+              className="hover:text-white transition-colors"
+            >
+              {t("footerPrivacy")}
+            </a>
           </nav>
         </div>
 
+        {/* Copyright — using unicode escape to avoid encoding corruption */}
         <div className="mt-8 pt-6 border-t border-gray-800 text-xs text-center">
-          {t("footerRights", { year: String(year) })}
+          {`\u00A9 ${year} Fresheri. `}
+          {t("footerRights", { year: String(year) })
+            .replace(/^.*Fresheri\.\s*/i, "") || "All rights reserved."}
         </div>
       </div>
     </footer>
