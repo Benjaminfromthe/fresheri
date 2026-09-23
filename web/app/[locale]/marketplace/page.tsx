@@ -155,7 +155,7 @@ export default function MarketplacePage() {
                   placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 border-b-2 border-white/40 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white focus:border-white transition-all"
                 />
               </div>
               {/* Cart button */}

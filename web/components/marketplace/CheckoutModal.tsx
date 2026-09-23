@@ -268,9 +268,19 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
                     <MapPin size={14} className="text-green-600" />
                     {t("deliveryAddressLabel")} <span className="text-red-500">*</span>
                   </label>
-                  <textarea rows={3} placeholder={t("deliveryAddressPlaceholder")} value={deliveryAddress}
-                    onChange={(e) => { setAddress(e.target.value); if (e.target.value.trim()) setAddrError(""); }}
-                    className={`w-full border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-400 ${addressError ? "border-red-400" : "border-gray-200"}`}
+                  <textarea
+                    rows={3}
+                    placeholder={t("deliveryAddressPlaceholder")}
+                    value={deliveryAddress}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      if (e.target.value.trim()) setAddrError("");
+                    }}
+                    className={`w-full border-2 rounded-xl px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 transition-all duration-150 ${
+                      addressError
+                        ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                        : "border-gray-300 bg-white hover:border-gray-400 focus:border-green-500 focus:ring-green-100"
+                    }`}
                   />
                   {addressError && <p className="text-xs text-red-500">{addressError}</p>}
                 </div>

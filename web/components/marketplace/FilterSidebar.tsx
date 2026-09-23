@@ -116,9 +116,9 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
               placeholder={t("customKgPlaceholder")}
               value={filters.minAvailableQty || ""}
               onChange={(e) => set("minAvailableQty", Number(e.target.value) || 0)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+              className="w-full border-2 border-gray-300 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all hover:border-gray-400 bg-white"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{tc("kgUnit")}</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-medium pointer-events-none">{tc("kgUnit")}</span>
           </div>
         </section>
 

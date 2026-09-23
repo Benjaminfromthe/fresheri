@@ -124,8 +124,8 @@ export default function HeroSection({ onSearch }: HeroSectionProps) {
           <div className="flex gap-2 mb-4">
             <div className="relative flex-1">
               <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
               />
               <input
                 type="search"
@@ -133,7 +133,7 @@ export default function HeroSection({ onSearch }: HeroSectionProps) {
                 onChange={(e) => set("query", e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t("heroSearchPlaceholder")}
-                className="w-full pl-9 pr-4 py-3 bg-white rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 border border-gray-200"
+                className="w-full pl-11 pr-4 py-3.5 bg-white rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-3 focus:ring-green-400/30 border-2 border-gray-200 focus:border-green-500 hover:border-gray-300 transition-all shadow-sm font-medium"
               />
             </div>
             <button
@@ -150,52 +150,39 @@ export default function HeroSection({ onSearch }: HeroSectionProps) {
 
             {/* Category */}
             <div className="relative">
-              <Tag
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
+              <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               <select
                 value={filters.category}
                 onChange={(e) => set("category", e.target.value)}
-                className="w-full pl-8 pr-3 py-2.5 bg-white rounded-xl text-sm text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400 appearance-none cursor-pointer"
+                className="w-full pl-8 pr-3 py-2.5 bg-white rounded-xl text-sm text-gray-800 border-2 border-gray-200 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 hover:border-gray-300 appearance-none cursor-pointer transition-all font-medium"
                 aria-label={t("filterCategory")}
               >
                 <option value="">{t("filterAllCategories")}</option>
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
 
             {/* Region */}
             <div className="relative">
-              <MapPin
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
+              <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               <select
                 value={filters.region}
                 onChange={(e) => set("region", e.target.value)}
-                className="w-full pl-8 pr-3 py-2.5 bg-white rounded-xl text-sm text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400 appearance-none cursor-pointer"
+                className="w-full pl-8 pr-3 py-2.5 bg-white rounded-xl text-sm text-gray-800 border-2 border-gray-200 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 hover:border-gray-300 appearance-none cursor-pointer transition-all font-medium"
                 aria-label={t("filterRegion")}
               >
                 <option value="">{t("filterAllRegions")}</option>
-                {REGIONS.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
+                {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
 
             {/* Fulfillment */}
             <div className="relative">
-              <Truck
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
+              <Truck size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               <select
                 value={filters.fulfillment}
                 onChange={(e) => set("fulfillment", e.target.value as HeroFilters["fulfillment"])}
-                className="w-full pl-8 pr-3 py-2.5 bg-white rounded-xl text-sm text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400 appearance-none cursor-pointer"
+                className="w-full pl-8 pr-3 py-2.5 bg-white rounded-xl text-sm text-gray-800 border-2 border-gray-200 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 hover:border-gray-300 appearance-none cursor-pointer transition-all font-medium"
                 aria-label={t("filterFulfillment")}
               >
                 <option value="ALL">{t("filterAllFulfillment")}</option>
