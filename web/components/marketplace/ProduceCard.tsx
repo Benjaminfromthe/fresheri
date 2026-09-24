@@ -1,16 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   MapPin, CalendarCheck, Package, Leaf,
   Minus, Plus, ShoppingCart, BadgeCheck,
   ShieldCheck, Users, ArrowRight,
 } from "lucide-react";
 import { ProduceListing, DeliveryOption } from "@/types/marketplace";
-import { BASE_DELIVERY_FEE, PICKUP_LOCK_MESSAGE } from "@/lib/constants";
-import PrivacyBadge      from "./PrivacyBadge";
+import { BASE_DELIVERY_FEE } from "@/lib/constants";
 import FulfillmentToggle from "./FulfillmentToggle";
+
+// Translation key maps — keep in sync with messages/*/products namespace
+const PRODUCT_KEY_MAP: Record<string, string> = {
+  "Tomatoes": "tomatoes", "Green Bananas": "greenBananas",
+  "Peppers": "peppers", "Cabbage": "cabbage",
+  "Irish Potatoes": "irishPotatoes", "African Eggplant": "eggplant",
+  "Rice": "rice", "Maize": "maize", "Spinach": "spinach", "Onions": "onions",
+};
+const CATEGORY_KEY_MAP: Record<string, string> = {
+  "Vegetables": "catVegetables", "Grains": "catGrains",
+  "Tubers": "catTubers", "Fruits": "catFruits", "Legumes": "catLegumes",
+};
+const REGION_KEY_MAP: Record<string, string> = {
+  "Nyabihu District": "regionNyabihu", "Musanze District": "regionMusanze",
+  "Eastern Province": "regionEastern", "Kirehe District": "regionKirehe",
+  "Bugesera District": "regionBugesera", "Kirinyaga District": "regionKirinyaga",
+  "Mwea District": "regionMwea", "Nyandarua District": "regionNyandarua",
+  "Kajiado District": "regionKajiado", "Kiambu District": "regionKiambu",
+  "Nakuru District": "regionNakuru",
+};
 
 interface ProduceCardProps {
   listing: ProduceListing;
@@ -23,9 +42,9 @@ function formatDate(iso: string) {
   });
 }
 
-function formatQty(qty: number, unit: string) {
-  if (unit === "KG" && qty >= 1000) return `${(qty / 1000).toFixed(1)} t`;
-  return `${qty.toLocaleString()} ${unit.toLowerCase()}`;
+function formatQty(qty: number, unit: string, kgLabel = "kg", tLabel = "t") {
+  if (unit === "KG" && qty >= 1000) return `${(qty / 1000).toFixed(1)} ${tLabel}`;
+  return `${qty.toLocaleString()} ${kgLabel}`;
 }
 
 // Per-category image fallback gradients — match landing page
@@ -44,14 +63,18 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 };
 
 export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) {
-  const t  = useTranslations("marketplace");
-  const tc = useTranslations("common");
-  const tf = useTranslations("fulfillment");
+  const t      = useTranslations("marketplace");
+  const tc     = useTranslations("common");
+  const tf     = useTranslations("fulfillment");
+  const tp     = useTranslations("products");
+  const locale = useLocale();
 
   const defaultFulfillment: DeliveryOption = listing.deliveryOptions[0] ?? "SELF_PICKUP";
   const [qty, setQty]               = useState(listing.minimumOrderQty);
   const [fulfillment, setFulfillment] = useState<DeliveryOption>(defaultFulfillment);
   const [added, setAdded]           = useState(false);
+  const [imgLoaded, setImgLoaded]   = useState(false);
+  const [imgError, setImgError]     = useState(false);
 
   const step      = listing.minimumOrderQty;
   const minQty    = listing.minimumOrderQty;
@@ -68,8 +91,17 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
   const gradient   = CATEGORY_GRADIENTS[listing.categoryName] ?? "from-green-400 to-teal-600";
   const emoji      = CATEGORY_EMOJIS[listing.categoryName] ?? "🌿";
   const imageUrl   = listing.imageUrls[0] ?? null;
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError]   = useState(false);
+
+  // Translated names
+  const translatedName     = PRODUCT_KEY_MAP[listing.produceName]    ? tp(PRODUCT_KEY_MAP[listing.produceName]    as Parameters<typeof tp>[0]) : listing.produceName;
+  const translatedCategory = CATEGORY_KEY_MAP[listing.categoryName]  ? tp(CATEGORY_KEY_MAP[listing.categoryName]  as Parameters<typeof tp>[0]) : listing.categoryName;
+  const translatedRegion   = REGION_KEY_MAP[listing.region]          ? tp(REGION_KEY_MAP[listing.region]          as Parameters<typeof tp>[0]) : listing.region;
+
+  // Locale-aware date
+  const loc = locale === "rw" ? "fr-RW" : locale === "fr" ? "fr-FR" : "en-KE";
+  const harvestDateStr = new Date(listing.harvestDate).toLocaleDateString(loc, {
+    day: "numeric", month: "short", year: "numeric",
+  });
 
   return (
     <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
@@ -92,9 +124,9 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
           <span className="text-6xl select-none" aria-hidden="true">{emoji}</span>
         )}
 
-        {/* Category badge */}
+        {/* Category badge — translated */}
         <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full z-10">
-          {listing.categoryName}
+          {translatedCategory}
         </span>
 
         {/* Organic badge */}
@@ -125,7 +157,7 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
         {/* Name + variety + seller */}
         <div>
           <h3 className="font-bold text-gray-900 text-base leading-tight">
-            {listing.produceName}
+            {translatedName}
             {listing.variety && (
               <span className="ml-1 font-normal text-gray-400 text-sm">({listing.variety})</span>
             )}
@@ -145,20 +177,17 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
         <ul className="space-y-1">
           <li className="flex items-center gap-1.5 text-xs text-gray-500">
             <MapPin size={11} className="text-green-500 shrink-0" />
-            {listing.region}
+            {translatedRegion}
           </li>
           <li className="flex items-center gap-1.5 text-xs text-gray-500">
             <CalendarCheck size={11} className="text-green-500 shrink-0" />
-            {t("harvestedOn", { date: formatDate(listing.harvestDate) })}
+            {t("harvestedOn", { date: harvestDateStr })}
           </li>
           <li className="flex items-center gap-1.5 text-xs text-gray-500">
             <Package size={11} className="text-green-500 shrink-0" />
-            {t("remaining", { qty: formatQty(listing.availableQuantity, listing.unit) })}
+            {t("remaining", { qty: formatQty(listing.availableQuantity, listing.unit, tc("kgUnit"), tc("tonUnit")) })}
           </li>
         </ul>
-
-        {/* Privacy badge */}
-        <PrivacyBadge compact />
 
         {/* Price */}
         <div className="flex items-baseline gap-1">

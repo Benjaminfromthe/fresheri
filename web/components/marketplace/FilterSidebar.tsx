@@ -185,7 +185,7 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
       {/* Results count */}
       <div className="mt-6 text-center">
         <span className="inline-block bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-          {totalResults} {totalResults !== 1 ? "listings" : "listing"} found
+          {totalResults} {t("title").toLowerCase()}
         </span>
       </div>
     </aside>
