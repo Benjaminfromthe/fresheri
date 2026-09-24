@@ -27,7 +27,6 @@
     "soldOut": "BIRANGIYE",
     "partialStock": "Bisigaye bike"
   },
-
   "navigation": {
     "marketplace": "Isoko",
     "openFilters": "Fungura gushungura",
@@ -38,16 +37,20 @@
     "profile": "Umwirondoro wanjye",
     "home": "Ahabanza",
     "about": "Ibyerekeye",
-    "howItWorks": "Uburyo bikora"
+    "howItWorks": "Uburyo bikora",
+    "logout": "Sohoka",
+    "logoutConfirm": "Wasohowe neza.",
+    "contactTitle": "Twandikire",
+    "contactPhone": "Telefone",
+    "contactEmail": "Imeyili",
+    "contactDesc": "Twandikire igihe cyose — tusubiza mu masaha 24."
   },
-
   "language": {
     "en": "Icyongereza",
     "rw": "Ikinyarwanda",
     "fr": "Igifaransa",
     "selectLanguage": "Hitamo ururimi"
   },
-
   "roles": {
     "FARMER": "Umuhinzi",
     "COOPERATIVE": "Koperative",
@@ -56,7 +59,6 @@
     "LOGISTICS_PARTNER": "Umunyamabanga w'ubwikorezi",
     "ADMIN": "Umuyobozi"
   },
-
   "auth": {
     "signIn": "Injira",
     "signOut": "Sohoka",
@@ -80,7 +82,6 @@
     "orContinueWith": "cyangwa komeza na",
     "phoneHint": "urugero: +250781234567",
     "emailHint": "urugero: wowe@example.com",
-
     "selectRole": "Ndi…",
     "roleHint": "Hitamo uruhare rukukuye",
     "roleFarmer": "Umuhinzi / Koperative",
@@ -91,7 +92,6 @@
     "roleHouseholdDesc": "Kugura bwite no mu rugo",
     "roleLogistics": "Umunyamabanga w'ubwikorezi",
     "roleLogisticsDesc": "Serivisi zo gutwara no gutanga",
-
     "farmName": "Izina rya ferme cyangwa koperative",
     "cooperativeRegNumber": "Nimero yo kwandikisha ya koperative",
     "farmLocation": "Akarere / intara ya ferme",
@@ -102,7 +102,6 @@
     "vehicleType": "Ubwoko bw'imodoka",
     "vehicleRegNumber": "Nimero y'imodoka",
     "operatingRegion": "Intara ukora muri yo",
-
     "passwordStrengthWeak": "Yoroheje",
     "passwordStrengthFair": "Yo hagati",
     "passwordStrengthGood": "Nziza",
@@ -111,14 +110,12 @@
     "showPassword": "Erekana ijambo banga",
     "hidePassword": "Hisha ijambo banga",
     "passwordMismatch": "Amagambo banga ntabwo ahuye",
-
     "privacyNotice": "Amakuru yawe bwite yo kwamanahana no aho ferme yawe iherereze bikomeza kubikwa mu ibanga kugeza igihe itumba ryo guterura ryemejwe.",
     "privacyNoticeTitle": "Amakuru yawe arinzwe",
     "termsNotice": "Mu gufungura konti, wemeye",
     "termsLink": "Amabwiriza y'Ikoranabuhanga",
     "and": "na",
     "privacyLink": "Politiki y'Ubuzima bwite",
-
     "marketingTitle": "Ibicuruzwa biboha,\nbivuye ku murima.",
     "marketingSub": "Fresheri ihuza amakoperative y'abahinzi yemejwe n'amahoteli, resitora, n'inzu z'urugo muri Afurika y'Iburasirazuba.",
     "statListings": "Ibicuruzwa bihari",
@@ -127,7 +124,6 @@
     "trustBadge1": "Kurinda amakuru buri gace",
     "trustBadge2": "Abahinzi bemejwe",
     "trustBadge3": "Kwishyura mu mutekano",
-
     "errRequired": "Iki gice ni ngombwa",
     "errEmailInvalid": "Shyiramo imeyili ikwiye",
     "errPhoneInvalid": "Shyiramo nimero ya telefone ikwiye (urugero: +250781234567)",
@@ -138,7 +134,6 @@
     "errCoopRegMin": "Shyiramo nimero yo kwandikisha ikwiye",
     "errBusinessNameMin": "Izina ry'ubucuruzi rigomba kuba rifite nibura inyuguti 2"
   },
-
   "marketplace": {
     "heroTitle": "Isoko ry'Ibicuruzwa mu Bwinshi",
     "heroSubtitle": "Gura ibicuruzwa biboha bivuye mu makoperative yemejwe. Amakuru arinzwe — ubuvanganzo bw'umuhinzi bwerekanywa nyuma yo guhitamo uburyo bwo kuronka.",
@@ -160,7 +155,6 @@
     "listingFound": "Ibitonbo {count} bibonetse",
     "searchResultsFor": "Ibisubizo bya \"{query}\""
   },
-
   "filters": {
     "title": "Gushungura",
     "reset": "Subiza",
@@ -175,7 +169,6 @@
     "fulfillmentDelivery": "Koherezwa gusa",
     "customKgPlaceholder": "Andika kg…"
   },
-
   "fulfillment": {
     "method": "Uburyo bwo kuronka",
     "selfPickup": "Gufata wenyine kuri Koperative",
@@ -188,14 +181,12 @@
     "deliveryDescription": "Umunyamabanga atumwe — inomero ya telefone y'umuhinzi irahishwa",
     "pickupLockMessage": "Aho guterura neza n'amakuru yo kwamanahana bizafunguliwa nyuma yo kwemeza itumba."
   },
-
   "privacy": {
     "badgeCompact": "Amakuru yawe arinzwe",
     "badgeDefault": "Ubuvanganzo bw'umuhinzi n'aho guterura neza bwerekanywa nyuma yo kwemeza uburyo bwo kuronka.",
     "pickupMessage": "Aho guterura neza n'inomero ya telefone y'umuhinzi bizafunguliwa nyuma yo kwemeza itumba ryawe.",
     "deliveryMessage": "Ubuvanganzo bw'umuhinzi n'aho guterura birahishwa. Umunyamabanga wawe niwe ubisesengura."
   },
-
   "orders": {
     "reviewTitle": "Isuzuma ry'itumba",
     "fulfillmentTitle": "Uburyo bwo kuronka",
@@ -244,7 +235,6 @@
     "preConfirmPickupNote": "Kwemeza itumba buzafungura aho guterura neza n'inomero ya telefone y'umuhinzi gusa kuri wowe.",
     "contactNotAvailable": "Amakuru yo guterura araboneka gusa ku matumba yemejwe ya SELF_PICKUP."
   },
-
   "toast": {
     "signupSuccess": "Konti yafunguwe neza! Murakaza neza kuri Fresheri.",
     "signinSuccess": "Winjiye neza. Murakaza neza!",
@@ -259,7 +249,6 @@
     "saved": "Byabitswe.",
     "profileUpdated": "Umwirondoro wawe wavuguruwe."
   },
-
   "errors": {
     "pageNotFound": "Urupapuro ntiruboneka",
     "pageNotFoundDesc": "Urupapuro washakishije nta ruhari. Saba gusubira ahabanza.",
@@ -269,7 +258,6 @@
     "tryAgain": "Ongera ugerageze",
     "contactSupport": "Baza inkunga"
   },
-
   "landing": {
     "heroTitle": "Ibicuruzwa biboha,\nbivuye ku murima.",
     "heroSubtitle": "Gura ibicuruzwa biboha bivuye mu makoperative y'abahinzi yemejwe muri Afurika y'Iburasirazuba. Amakuru arinzwe, igiciro kigaragara, uburyo bwo kuronka.",
@@ -322,40 +310,36 @@
     "footerTerms": "Amabwiriza y'Ikoranabuhanga",
     "footerContact": "Twandikire",
     "footerRights": "© {year} Fresheri. Uburenganzira bwose burindwa."
-  }
-
-  ,"products": {
-    "cabbage":       "Ishu",
-    "greenBananas":  "Ibitoki",
-    "peppers":       "Urusenda",
-    "tomatoes":      "Inyanya",
+  },
+  "products": {
+    "cabbage": "Ishu",
+    "greenBananas": "Ibitoki",
+    "peppers": "Urusenda",
+    "tomatoes": "Inyanya",
     "irishPotatoes": "Ibirayi",
-    "eggplant":      "Intoryi",
-    "rice":          "Umuceli",
-    "maize":         "Ibigori",
-    "spinach":       "Isogi",
-    "onions":        "Kababu",
-
+    "eggplant": "Intoryi",
+    "rice": "Umuceli",
+    "maize": "Ibigori",
+    "spinach": "Isogi",
+    "onions": "Kababu",
     "catVegetables": "Imboga",
-    "catGrains":     "Ibinyampeke",
-    "catTubers":     "Ibituragiro",
-    "catFruits":     "Imbuto",
-    "catLegumes":    "Ibishyimbo",
-
-    "regionNyabihu":    "Akarere ka Nyabihu",
-    "regionMusanze":    "Akarere ka Musanze",
-    "regionEastern":    "Intara y'Iburasirazuba",
-    "regionKirehe":     "Akarere ka Kirehe",
-    "regionBugesera":   "Akarere ka Bugesera",
-    "regionKirinyaga":  "Akarere ka Kirinyaga",
-    "regionMwea":       "Akarere ka Mwea",
-    "regionNyandarua":  "Akarere ka Nyandarua",
-    "regionKajiado":    "Akarere ka Kajiado",
-    "regionKiambu":     "Akarere ka Kiambu",
-    "regionNakuru":     "Akarere ka Nakuru"
-  }
-
-  ,"authGate": {
+    "catGrains": "Ibinyampeke",
+    "catTubers": "Ibituragiro",
+    "catFruits": "Imbuto",
+    "catLegumes": "Ibishyimbo",
+    "regionNyabihu": "Akarere ka Nyabihu",
+    "regionMusanze": "Akarere ka Musanze",
+    "regionEastern": "Intara y'Iburasirazuba",
+    "regionKirehe": "Akarere ka Kirehe",
+    "regionBugesera": "Akarere ka Bugesera",
+    "regionKirinyaga": "Akarere ka Kirinyaga",
+    "regionMwea": "Akarere ka Mwea",
+    "regionNyandarua": "Akarere ka Nyandarua",
+    "regionKajiado": "Akarere ka Kajiado",
+    "regionKiambu": "Akarere ka Kiambu",
+    "regionNakuru": "Akarere ka Nakuru"
+  },
+  "authGate": {
     "title": "Injira Fresheri ukomeze",
     "subtitle": "Fungura konti ya ubuntu kugira ngo ubone aho guterura neza, utange amatumba mu bwinshi, kandi uhuze neza n'amakoperative y'abahinzi yemejwe.",
     "signUpBtn": "Fungura Konti ya Ubuntu",

@@ -27,7 +27,6 @@
     "soldOut": "SOLD OUT",
     "partialStock": "Partial stock"
   },
-
   "navigation": {
     "marketplace": "Marketplace",
     "openFilters": "Open filters",
@@ -38,16 +37,20 @@
     "profile": "My Profile",
     "home": "Home",
     "about": "About",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "logout": "Log Out",
+    "logoutConfirm": "You have been logged out.",
+    "contactTitle": "Contact Us",
+    "contactPhone": "Phone",
+    "contactEmail": "Email",
+    "contactDesc": "Reach us anytime — we respond within 24 hours."
   },
-
   "language": {
     "en": "English",
     "rw": "Kinyarwanda",
     "fr": "French",
     "selectLanguage": "Select language"
   },
-
   "roles": {
     "FARMER": "Farmer",
     "COOPERATIVE": "Cooperative",
@@ -56,7 +59,6 @@
     "LOGISTICS_PARTNER": "Logistics Partner",
     "ADMIN": "Administrator"
   },
-
   "auth": {
     "signIn": "Sign In",
     "signOut": "Sign Out",
@@ -80,7 +82,6 @@
     "orContinueWith": "or continue with",
     "phoneHint": "e.g. +250781234567",
     "emailHint": "e.g. you@example.com",
-
     "selectRole": "I am a…",
     "roleHint": "Choose the role that best describes you",
     "roleFarmer": "Farmer / Cooperative",
@@ -91,7 +92,6 @@
     "roleHouseholdDesc": "Personal & family purchases",
     "roleLogistics": "Logistics Partner",
     "roleLogisticsDesc": "Delivery & transport services",
-
     "farmName": "Farm or cooperative name",
     "cooperativeRegNumber": "Cooperative registration number",
     "farmLocation": "Farm district / region",
@@ -102,7 +102,6 @@
     "vehicleType": "Vehicle type",
     "vehicleRegNumber": "Vehicle registration number",
     "operatingRegion": "Operating region(s)",
-
     "passwordStrengthWeak": "Weak",
     "passwordStrengthFair": "Fair",
     "passwordStrengthGood": "Good",
@@ -111,14 +110,12 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "passwordMismatch": "Passwords do not match",
-
     "privacyNotice": "Your personal contact details and farm location remain strictly private until an order pickup is confirmed.",
     "privacyNoticeTitle": "Your privacy is protected",
     "termsNotice": "By creating an account you agree to our",
     "termsLink": "Terms of Service",
     "and": "and",
     "privacyLink": "Privacy Policy",
-
     "marketingTitle": "Fresh from the farm.\nDirect to your kitchen.",
     "marketingSub": "Fresheri connects verified farmer cooperatives with hotels, restaurants, and households across East Africa.",
     "statListings": "Active listings",
@@ -127,7 +124,6 @@
     "trustBadge1": "End-to-end privacy protection",
     "trustBadge2": "Verified farmer identities",
     "trustBadge3": "Secure payments",
-
     "errRequired": "This field is required",
     "errEmailInvalid": "Enter a valid email address",
     "errPhoneInvalid": "Enter a valid phone number (e.g. +250781234567)",
@@ -138,7 +134,6 @@
     "errCoopRegMin": "Enter a valid registration number",
     "errBusinessNameMin": "Business name must be at least 2 characters"
   },
-
   "marketplace": {
     "heroTitle": "Bulk Produce Marketplace",
     "heroSubtitle": "Source directly from verified farmer cooperatives. Privacy-protected — farmer identity revealed only upon your confirmed fulfillment choice.",
@@ -160,7 +155,6 @@
     "listingFound": "{count} listing{count, plural, one {} other {s}} found",
     "searchResultsFor": "Results for \"{query}\""
   },
-
   "filters": {
     "title": "Filters",
     "reset": "Reset",
@@ -175,7 +169,6 @@
     "fulfillmentDelivery": "Delivery Only",
     "customKgPlaceholder": "Custom kg…"
   },
-
   "fulfillment": {
     "method": "Fulfillment Method",
     "selfPickup": "Self-Pickup from Cooperative",
@@ -188,14 +181,12 @@
     "deliveryDescription": "Logistics agent dispatched — farmer contact stays private",
     "pickupLockMessage": "Exact pickup location and contact details will be unlocked upon order confirmation."
   },
-
   "privacy": {
     "badgeCompact": "Privacy protected",
     "badgeDefault": "Farmer identity and exact pickup address revealed upon confirming pickup choice.",
     "pickupMessage": "Exact pickup location and farmer contact will be unlocked immediately after your order is confirmed.",
     "deliveryMessage": "Farmer identity and pickup address are kept private. Your assigned logistics agent handles all coordination."
   },
-
   "orders": {
     "reviewTitle": "Order Review",
     "fulfillmentTitle": "Fulfillment Method",
@@ -224,14 +215,12 @@
     "deliveryAddressRequired": "Delivery address is required.",
     "deliveryAddressPlaceholder": "e.g. Kigali — KG 7 Ave, Hotel des Mille Collines",
     "orderNumber": "Order #{number}",
-
     "pickupUnlocked": "Pickup Details Unlocked",
     "pickupUnlockedSub": "Exclusive to your order — please keep this confidential",
     "cooperativeFarm": "Cooperative / Farm",
     "pickupLocation": "Pickup Location",
     "directContact": "Direct Contact",
     "pickupPrivacyNote": "This contact is shared exclusively for pickup coordination. Please do not share it publicly.",
-
     "orderDispatched": "Order Dispatched",
     "trackingPlaced": "Order placed",
     "trackingPlacedSub": "Your order is confirmed",
@@ -243,11 +232,9 @@
     "trackingDeliveredSub": "Produce delivered to your address",
     "trackingPrivacyNote": "Farmer contact details are kept private and shared only with your assigned logistics agent for pickup coordination.",
     "smsStagedNote": "You will receive an SMS update at each stage.",
-
     "preConfirmPickupNote": "Confirming this order will unlock the exact pickup location and farmer contact number exclusively for you.",
     "contactNotAvailable": "Pickup contact is only available for confirmed SELF_PICKUP orders."
   },
-
   "landing": {
     "heroTitle": "Fresh Produce,\nDirect from the Farm.",
     "heroSubtitle": "Buy verified bulk produce from farmer cooperatives across East Africa. Privacy-first, transparent pricing, flexible fulfillment.",
@@ -300,9 +287,8 @@
     "footerTerms": "Terms of Service",
     "footerContact": "Contact",
     "footerRights": "© {year} Fresheri. All rights reserved."
-  }
-
-  ,"toast": {
+  },
+  "toast": {
     "signupSuccess": "Account created successfully! Welcome to Fresheri.",
     "signinSuccess": "Signed in successfully. Welcome back!",
     "signoutSuccess": "Signed out successfully.",
@@ -316,7 +302,6 @@
     "saved": "Saved.",
     "profileUpdated": "Your profile has been updated."
   },
-
   "errors": {
     "pageNotFound": "Page not found",
     "pageNotFoundDesc": "The page you are looking for does not exist. Try going back home.",
@@ -325,40 +310,36 @@
     "somethingWrongDesc": "An unexpected error occurred. Please try again.",
     "tryAgain": "Try again",
     "contactSupport": "Contact support"
-  }
-
-  ,"products": {
-    "cabbage":       "Cabbage",
-    "greenBananas":  "Green Bananas",
-    "peppers":       "Peppers",
-    "tomatoes":      "Tomatoes",
+  },
+  "products": {
+    "cabbage": "Cabbage",
+    "greenBananas": "Green Bananas",
+    "peppers": "Peppers",
+    "tomatoes": "Tomatoes",
     "irishPotatoes": "Irish Potatoes",
-    "eggplant":      "African Eggplant",
-    "rice":          "Rice",
-    "maize":         "Maize",
-    "spinach":       "Spinach",
-    "onions":        "Onions",
-
+    "eggplant": "African Eggplant",
+    "rice": "Rice",
+    "maize": "Maize",
+    "spinach": "Spinach",
+    "onions": "Onions",
     "catVegetables": "Vegetables",
-    "catGrains":     "Grains",
-    "catTubers":     "Tubers",
-    "catFruits":     "Fruits",
-    "catLegumes":    "Legumes",
-
-    "regionNyabihu":    "Nyabihu District",
-    "regionMusanze":    "Musanze District",
-    "regionEastern":    "Eastern Province",
-    "regionKirehe":     "Kirehe District",
-    "regionBugesera":   "Bugesera District",
-    "regionKirinyaga":  "Kirinyaga District",
-    "regionMwea":       "Mwea District",
-    "regionNyandarua":  "Nyandarua District",
-    "regionKajiado":    "Kajiado District",
-    "regionKiambu":     "Kiambu District",
-    "regionNakuru":     "Nakuru District"
-  }
-
-  ,"authGate": {
+    "catGrains": "Grains",
+    "catTubers": "Tubers",
+    "catFruits": "Fruits",
+    "catLegumes": "Legumes",
+    "regionNyabihu": "Nyabihu District",
+    "regionMusanze": "Musanze District",
+    "regionEastern": "Eastern Province",
+    "regionKirehe": "Kirehe District",
+    "regionBugesera": "Bugesera District",
+    "regionKirinyaga": "Kirinyaga District",
+    "regionMwea": "Mwea District",
+    "regionNyandarua": "Nyandarua District",
+    "regionKajiado": "Kajiado District",
+    "regionKiambu": "Kiambu District",
+    "regionNakuru": "Nakuru District"
+  },
+  "authGate": {
     "title": "Join Fresheri to continue",
     "subtitle": "Create a free account to view exact pickup locations, place bulk orders, and connect directly with verified farmer cooperatives.",
     "signUpBtn": "Create Free Account",

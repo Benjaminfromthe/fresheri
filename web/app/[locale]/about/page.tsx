@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Header      from "@/components/layout/Header";
-import Footer      from "@/components/layout/Footer";
-import HeroSection from "@/components/landing/HeroSection";
-import StatsStrip  from "@/components/landing/StatsStrip";
-import ProduceGrid from "@/components/landing/ProduceGrid";
-import HowItWorks  from "@/components/landing/HowItWorks";
-import CTASection  from "@/components/landing/CTASection";
+import Header          from "@/components/layout/Header";
+import Footer          from "@/components/layout/Footer";
+import HeroSection     from "@/components/landing/HeroSection";
+import StatsStrip      from "@/components/landing/StatsStrip";
+import ProduceGrid     from "@/components/landing/ProduceGrid";
+import HowItWorks      from "@/components/landing/HowItWorks";
+import CTASection      from "@/components/landing/CTASection";
+import ContactSection  from "@/components/layout/ContactSection";
 import type { HeroFilters } from "@/components/landing/HeroSection";
 
 const DEFAULT_FILTERS: HeroFilters = {
@@ -26,6 +27,10 @@ export default function AboutPage() {
         <ProduceGrid filters={filters} />
         <HowItWorks />
         <CTASection />
+        {/* Contact section at bottom of about page */}
+        <div className="bg-white border-t border-gray-100">
+          <ContactSection />
+        </div>
       </main>
       <Footer />
     </div>

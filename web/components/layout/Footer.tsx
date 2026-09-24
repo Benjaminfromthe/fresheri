@@ -33,13 +33,10 @@ export default function Footer() {
             <Link href="/#how" className="hover:text-white transition-colors">
               {t("footerTerms")}
             </Link>
-            <a
-              href="mailto:support@fresheri.app"
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
-            >
+            <Link href="/contact" className="flex items-center gap-1.5 hover:text-white transition-colors">
               <Mail size={12} />
               {t("footerContact")}
-            </a>
+            </Link>
             <a
               href="mailto:privacy@fresheri.app"
               className="hover:text-white transition-colors"
