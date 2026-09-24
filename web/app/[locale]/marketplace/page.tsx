@@ -10,14 +10,14 @@ import Footer           from "@/components/layout/Footer";
 import FilterSidebar    from "@/components/marketplace/FilterSidebar";
 import ProduceCard      from "@/components/marketplace/ProduceCard";
 import CheckoutModal    from "@/components/marketplace/CheckoutModal";
+import AuthGateModal    from "@/components/auth/AuthGateModal";
 import { toast }        from "@/components/ui/Toaster";
-import { Link }         from "@/i18n/navigation";
-import { getStoredUser } from "@/lib/api-client";
-import { UserPlus, X as CloseIcon } from "lucide-react";
 
-import { MOCK_LISTINGS }        from "@/lib/mock-listings";
-import { placeOrderBatch }      from "@/lib/api-client";
-import { PLACEHOLDER_BUYER_ID } from "@/lib/constants";
+import { MOCK_LISTINGS }         from "@/lib/mock-listings";
+import { placeOrderBatch }       from "@/lib/api-client";
+import { getStoredUser }         from "@/lib/api-client";
+import { PLACEHOLDER_BUYER_ID }  from "@/lib/constants";
+import { useAuthGate }           from "@/lib/auth/use-auth-gate";
 import {
   CartItem,
   DEFAULT_FILTERS,
@@ -56,69 +56,6 @@ function applyFilters(
 }
 
 // ─────────────────────────────────────────────────────────────
-// Sign-up CTA banner — shown at top of grid for guests
-// ─────────────────────────────────────────────────────────────
-
-function SignUpBanner() {
-  const t = useTranslations("marketplace");
-  const [dismissed, setDismissed] = useState(() => {
-    try { return typeof window !== "undefined" && !!localStorage.getItem("banner_dismissed"); }
-    catch { return false; }
-  });
-
-  // Don't show if user is logged in or already dismissed
-  const isLoggedIn = typeof window !== "undefined" && !!getStoredUser();
-  if (isLoggedIn || dismissed) return null;
-
-  return (
-    <div className="relative mb-6 bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
-
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-          <UserPlus size={20} className="text-white" />
-        </div>
-        <div>
-          <p className="font-bold text-base">
-            {t("bannerTitle") as string || "Create a free account to place orders"}
-          </p>
-          <p className="text-green-100 text-sm mt-0.5">
-            {t("bannerDesc") as string || "Sign up in 30 seconds. Buy directly from verified cooperatives."}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 shrink-0">
-        <Link
-          href="/auth"
-          className="flex items-center gap-2 bg-white text-green-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-green-50 transition-colors whitespace-nowrap"
-        >
-          <UserPlus size={15} />
-          Sign Up Free
-        </Link>
-        <Link
-          href="/auth"
-          className="text-white/80 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
-        >
-          Sign In
-        </Link>
-        <button
-          onClick={() => {
-            setDismissed(true);
-            try { localStorage.setItem("banner_dismissed", "1"); } catch { /* */ }
-          }}
-          className="text-white/60 hover:text-white transition-colors ml-1"
-          aria-label="Dismiss"
-        >
-          <CloseIcon size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
 // Marketplace Page
 // ─────────────────────────────────────────────────────────────
 
@@ -127,17 +64,19 @@ export default function MarketplacePage() {
   const tc = useTranslations("common");
   const tt = useTranslations("toast");
 
-  // Read ?search= param from landing page "View Details" click
-  const searchParams = useSearchParams();
+  // Auth gate — intercepts unauthenticated actions
+  const { gateState, gate, onAuthSuccess, closeGate } = useAuthGate();
+
+  // URL search param from "View Details" on landing cards
+  const searchParams  = useSearchParams();
   const initialSearch = searchParams.get("search") ?? "";
 
-  const [filters, setFilters]                     = useState<MarketplaceFilters>(DEFAULT_FILTERS);
-  const [search, setSearch]                       = useState(initialSearch);
-  const [cart, setCart]                           = useState<CartItem[]>([]);
-  const [showCheckout, setShowCheckout]           = useState(false);
+  const [filters, setFilters]             = useState<MarketplaceFilters>(DEFAULT_FILTERS);
+  const [search, setSearch]               = useState(initialSearch);
+  const [cart, setCart]                   = useState<CartItem[]>([]);
+  const [showCheckout, setShowCheckout]   = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Sync search when URL param changes
   useEffect(() => {
     if (initialSearch) setSearch(initialSearch);
   }, [initialSearch]);
@@ -147,22 +86,25 @@ export default function MarketplacePage() {
     [filters, search]
   );
 
+  // ── Gated: Add to cart ────────────────────────────────────
   const handleAddToCart = useCallback(
     (listing: ProduceListing, qty: number, fulfillment: DeliveryOption) => {
-      setCart((prev) => {
-        const existing = prev.find((i) => i.listing.id === listing.id);
-        if (existing) {
-          return prev.map((i) =>
-            i.listing.id === listing.id
-              ? { ...i, quantityKg: qty, selectedFulfillment: fulfillment }
-              : i
-          );
-        }
-        return [...prev, { listing, quantityKg: qty, selectedFulfillment: fulfillment }];
+      gate("placeOrder", listing.id, () => {
+        setCart((prev) => {
+          const existing = prev.find((i) => i.listing.id === listing.id);
+          if (existing) {
+            return prev.map((i) =>
+              i.listing.id === listing.id
+                ? { ...i, quantityKg: qty, selectedFulfillment: fulfillment }
+                : i
+            );
+          }
+          return [...prev, { listing, quantityKg: qty, selectedFulfillment: fulfillment }];
+        });
+        toast.success(tt("cartAdded", { name: listing.produceName }));
       });
-      toast.success(tt("cartAdded", { name: listing.produceName }));
     },
-    [tt]
+    [gate, tt]
   );
 
   const handleRemoveFromCart = useCallback(
@@ -170,12 +112,21 @@ export default function MarketplacePage() {
     []
   );
 
+  // ── Gated: Open checkout ──────────────────────────────────
+  const handleOpenCheckout = useCallback(() => {
+    gate("placeOrder", undefined, () => setShowCheckout(true));
+  }, [gate]);
+
+  // ── Gated: Place order ────────────────────────────────────
   const handlePlaceOrder = useCallback(
     async (deliveryOption: DeliveryOption, deliveryAddress: string): Promise<OrderResult[]> => {
+      // At this point the user is authenticated (checkout was gated)
       try {
+        const user    = getStoredUser();
+        const buyerId = user?.userId ?? PLACEHOLDER_BUYER_ID;
         const results = await placeOrderBatch(
           cart.map((item) => ({
-            buyerId:         PLACEHOLDER_BUYER_ID,
+            buyerId,
             listingId:       item.listing.id,
             quantityKg:      item.quantityKg,
             deliveryOption,
@@ -185,25 +136,30 @@ export default function MarketplacePage() {
         setCart([]);
         toast.success(tt("orderSuccess"));
         return results;
-      } catch (err) {
+      } catch {
         toast.error(tt("orderError"));
-        throw err;
+        throw new Error("Order failed");
       }
     },
     [cart, tt]
   );
 
+  // ── Auth gate success → replay pending action ─────────────
+  const handleAuthSuccess = useCallback(() => {
+    onAuthSuccess();
+  }, [onAuthSuccess]);
+
   const cartCount = cart.length;
   const cartTotal = cart.reduce((sum, i) => sum + i.quantityKg * i.listing.unitPrice, 0);
   const currency  = cart[0]?.listing.currency ?? "KES";
+  const isAuthed  = typeof window !== "undefined" && !!getStoredUser();
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* Shared header — same as landing page */}
       <Header />
 
-      {/* Marketplace sub-header bar */}
+      {/* ── Green marketplace header bar ── */}
       <div className="bg-gradient-to-r from-green-700 to-emerald-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -212,8 +168,8 @@ export default function MarketplacePage() {
               <p className="text-green-100 text-sm mt-1 max-w-md">{t("heroSubtitle")}</p>
             </div>
 
-            {/* Search bar */}
             <div className="flex gap-2 w-full sm:w-auto sm:min-w-80">
+              {/* Search */}
               <div className="relative flex-1">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 <input
@@ -221,12 +177,13 @@ export default function MarketplacePage() {
                   placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 border-b-2 border-white/40 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white focus:border-white transition-all"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white transition-all"
                 />
               </div>
-              {/* Cart button */}
+
+              {/* Cart — gated */}
               <button
-                onClick={() => setShowCheckout(true)}
+                onClick={handleOpenCheckout}
                 disabled={cartCount === 0}
                 className="relative flex items-center gap-2 bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors border border-white/30"
                 aria-label={`Cart — ${cartCount} items`}
@@ -239,18 +196,19 @@ export default function MarketplacePage() {
                   </span>
                 )}
               </button>
+
               {/* Mobile filter */}
               <button
                 onClick={() => setMobileSidebarOpen(true)}
                 className="lg:hidden flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-xl border border-white/30 transition"
-                aria-label="Open filters"
+                aria-label={tc("search")}
               >
                 <SlidersHorizontal size={16} />
               </button>
             </div>
           </div>
 
-          {/* Quick stats */}
+          {/* Stats */}
           <div className="mt-4 flex flex-wrap gap-4">
             {[
               { label: t("activeListings"),  value: MOCK_LISTINGS.filter((l) => l.status !== "SOLD_OUT").length },
@@ -266,15 +224,17 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Main layout */}
+      {/* ── Main content ── */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
 
-        {/* Sign-up CTA banner — shown to unauthenticated users */}
-        <SignUpBanner />
+        {/* Guest CTA banner — dismissable, hidden once logged in */}
+        {!isAuthed && (
+          <GuestBanner onGate={() => gate("placeOrder", undefined, () => {})} />
+        )}
 
         <div className="flex gap-6">
 
-          {/* Desktop filter sidebar */}
+          {/* Desktop sidebar */}
           <div className="hidden lg:block sticky top-20 self-start shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-64">
               <FilterSidebar
@@ -287,7 +247,6 @@ export default function MarketplacePage() {
 
           {/* Grid */}
           <div className="flex-1 min-w-0">
-            {/* Result bar with cart total */}
             <div className="flex items-center justify-between mb-5">
               <p className="text-sm text-gray-500">
                 <span className="font-semibold text-gray-800">{filteredListings.length}</span>{" "}
@@ -295,7 +254,7 @@ export default function MarketplacePage() {
               </p>
               {cartCount > 0 && (
                 <button
-                  onClick={() => setShowCheckout(true)}
+                  onClick={handleOpenCheckout}
                   className="flex items-center gap-2 text-sm text-green-700 font-semibold hover:underline"
                 >
                   <ShoppingCart size={14} />
@@ -335,15 +294,12 @@ export default function MarketplacePage() {
 
       {/* Mobile filter drawer */}
       {mobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <span className="font-bold text-gray-900">Filters</span>
-              <button
-                onClick={() => setMobileSidebarOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition"
-              >
+              <span className="font-bold text-gray-900">{tc("search")}</span>
+              <button onClick={() => setMobileSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
                 <X size={16} />
               </button>
             </div>
@@ -358,7 +314,7 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      {/* Checkout modal */}
+      {/* Checkout modal — only reachable after auth */}
       {showCheckout && (
         <CheckoutModal
           cart={cart}
@@ -367,6 +323,67 @@ export default function MarketplacePage() {
           onPlaceOrder={handlePlaceOrder}
         />
       )}
+
+      {/* Auth gate modal — intercepts unauthenticated actions */}
+      <AuthGateModal
+        open={gateState.open}
+        action={gateState.pendingAction?.type ?? null}
+        onClose={closeGate}
+        onAuthSuccess={handleAuthSuccess}
+      />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// GuestBanner — soft CTA, dismissable
+// ─────────────────────────────────────────────────────────────
+
+function GuestBanner({ onGate }: { onGate: () => void }) {
+  const [dismissed, setDismissed] = useState(() => {
+    try { return typeof window !== "undefined" && !!localStorage.getItem("guest_banner_dismissed"); }
+    catch { return false; }
+  });
+
+  if (dismissed) return null;
+
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("guest_banner_dismissed", "1"); } catch { /* */ }
+  };
+
+  return (
+    <div className="relative mb-6 rounded-2xl overflow-hidden shadow-sm border border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+      <div className="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+            <Sprout size={20} className="text-green-700" />
+          </div>
+          <div>
+            <p className="font-bold text-gray-900 text-sm">
+              Browse freely — sign up when you're ready to order
+            </p>
+            <p className="text-gray-500 text-xs mt-0.5">
+              View all products, prices and regions without an account. Create one free to place orders.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={onGate}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
+          >
+            Create Free Account
+          </button>
+          <button
+            onClick={dismiss}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            aria-label="Dismiss"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

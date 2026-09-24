@@ -2,7 +2,7 @@
   "common": {
     "appName": "Fresheri",
     "appTagline": "Marketplace",
-    "loading": "LoadingÃ¢â‚¬Â¦",
+    "loading": "LoadingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "save": "Save",
     "cancel": "Cancel",
     "back": "Back",
@@ -21,7 +21,7 @@
     "tonUnit": "t",
     "minLabel": "Min",
     "stepLabel": "step",
-    "customKg": "Custom kgÃ¢â‚¬Â¦",
+    "customKg": "Custom kgÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "privacyProtected": "Privacy protected",
     "continueShoppingBtn": "Continue Shopping",
     "soldOut": "SOLD OUT",
@@ -32,7 +32,7 @@
     "marketplace": "Marketplace",
     "openFilters": "Open filters",
     "orderCart": "Order",
-    "cartAriaLabel": "Cart Ã¢â‚¬â€ {count} items",
+    "cartAriaLabel": "Cart ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {count} items",
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "profile": "My Profile",
@@ -75,13 +75,13 @@
     "hasAccount": "Already have an account?",
     "signInBtn": "Sign In",
     "signUpBtn": "Create Account",
-    "signingIn": "Signing inÃ¢â‚¬Â¦",
-    "signingUp": "Creating accountÃ¢â‚¬Â¦",
+    "signingIn": "Signing inÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
+    "signingUp": "Creating accountÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "orContinueWith": "or continue with",
     "phoneHint": "e.g. +250781234567",
     "emailHint": "e.g. you@example.com",
 
-    "selectRole": "I am aÃ¢â‚¬Â¦",
+    "selectRole": "I am aÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "roleHint": "Choose the role that best describes you",
     "roleFarmer": "Farmer / Cooperative",
     "roleFarmerDesc": "Publish produce & sync via USSD",
@@ -141,20 +141,20 @@
 
   "marketplace": {
     "heroTitle": "Bulk Produce Marketplace",
-    "heroSubtitle": "Source directly from verified farmer cooperatives. Privacy-protected Ã¢â‚¬â€ farmer identity revealed only upon your confirmed fulfillment choice.",
+    "heroSubtitle": "Source directly from verified farmer cooperatives. Privacy-protected ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â farmer identity revealed only upon your confirmed fulfillment choice.",
     "activeListings": "Active Listings",
     "cooperatives": "Cooperatives",
     "cropCategories": "Crop Categories",
     "listingsAvailable": "{count} listing{count, plural, one {} other {s}} available",
     "noListingsTitle": "No listings match your filters",
     "noListingsClear": "Clear all filters",
-    "searchPlaceholder": "Search produce, cooperative, regionÃ¢â‚¬Â¦",
+    "searchPlaceholder": "Search produce, cooperative, regionÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "harvestedOn": "Harvested {date}",
     "remaining": "{qty} available",
-    "addToOrderPickup": "Add to Order Ã‚Â· Pickup",
-    "addToOrderDelivery": "Add to Order Ã‚Â· Delivery",
+    "addToOrderPickup": "Add to Order Ãƒâ€šÃ‚Â· Pickup",
+    "addToOrderDelivery": "Add to Order Ãƒâ€šÃ‚Â· Delivery",
     "addedConfirmation": "Added!",
-    "minQtyHint": "Min {min} kg Ã‚Â· step {step} kg",
+    "minQtyHint": "Min {min} kg Ãƒâ€šÃ‚Â· step {step} kg",
     "inclDelivery": "incl. delivery",
     "cooperativeIn": "Farmer Cooperative in {region}",
     "listingFound": "{count} listing{count, plural, one {} other {s}} found",
@@ -173,19 +173,19 @@
     "fulfillmentAll": "All Options",
     "fulfillmentPickup": "Pickup Only",
     "fulfillmentDelivery": "Delivery Only",
-    "customKgPlaceholder": "Custom kgÃ¢â‚¬Â¦"
+    "customKgPlaceholder": "Custom kgÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
   },
 
   "fulfillment": {
     "method": "Fulfillment Method",
     "selfPickup": "Self-Pickup from Cooperative",
     "selfPickupCompact": "Pickup",
-    "selfPickupDescription": "Collect directly Ã¢â‚¬â€ exact location & contact unlocked after confirmation",
+    "selfPickupDescription": "Collect directly ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â exact location & contact unlocked after confirmation",
     "selfPickupFree": "Free",
     "selfPickupUnlockBadge": "Location unlocked post-order",
     "delivery": "Request Delivery to My Address",
     "deliveryCompact": "Delivery",
-    "deliveryDescription": "Logistics agent dispatched Ã¢â‚¬â€ farmer contact stays private",
+    "deliveryDescription": "Logistics agent dispatched ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â farmer contact stays private",
     "pickupLockMessage": "Exact pickup location and contact details will be unlocked upon order confirmation."
   },
 
@@ -204,14 +204,14 @@
     "itemCount": "{count} item{count, plural, one {} other {s}}",
     "chooseDelivery": "Choose Fulfillment",
     "reviewOrder": "Review Order",
-    "placeOrder": "Place Order Ã‚Â· {total}",
-    "placing": "PlacingÃ¢â‚¬Â¦",
+    "placeOrder": "Place Order Ãƒâ€šÃ‚Â· {total}",
+    "placing": "PlacingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "emptyCart": "Your order is empty.",
     "remove": "Remove {name}",
     "lineTotal": "{currency} {amount}",
     "subtotal": "Produce subtotal",
     "deliveryFee": "Delivery fee",
-    "freePickup": "Free Ã¢â‚¬â€ Self pickup",
+    "freePickup": "Free ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Self pickup",
     "total": "Total",
     "items": "Items",
     "fulfillmentLabel": "Fulfillment",
@@ -222,11 +222,11 @@
     "smsConfirmationNote": "SMS confirmation sent to your phone.",
     "deliveryAddressLabel": "Delivery Address",
     "deliveryAddressRequired": "Delivery address is required.",
-    "deliveryAddressPlaceholder": "e.g. Kigali Ã¢â‚¬â€ KG 7 Ave, Hotel des Mille Collines",
+    "deliveryAddressPlaceholder": "e.g. Kigali ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â KG 7 Ave, Hotel des Mille Collines",
     "orderNumber": "Order #{number}",
 
     "pickupUnlocked": "Pickup Details Unlocked",
-    "pickupUnlockedSub": "Exclusive to your order Ã¢â‚¬â€ please keep this confidential",
+    "pickupUnlockedSub": "Exclusive to your order ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â please keep this confidential",
     "cooperativeFarm": "Cooperative / Farm",
     "pickupLocation": "Pickup Location",
     "directContact": "Direct Contact",
@@ -251,7 +251,7 @@
   "landing": {
     "heroTitle": "Fresh Produce,\nDirect from the Farm.",
     "heroSubtitle": "Buy verified bulk produce from farmer cooperatives across East Africa. Privacy-first, transparent pricing, flexible fulfillment.",
-    "heroSearchPlaceholder": "Search crops, region or cooperativeÃ¢â‚¬Â¦",
+    "heroSearchPlaceholder": "Search crops, region or cooperativeÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
     "filterCategory": "Crop Category",
     "filterRegion": "Region",
     "filterFulfillment": "Fulfillment",
@@ -299,7 +299,7 @@
     "footerPrivacy": "Privacy Policy",
     "footerTerms": "Terms of Service",
     "footerContact": "Contact",
-    "footerRights": "Â© {year} Fresheri. All rights reserved."
+    "footerRights": "Ã‚Â© {year} Fresheri. All rights reserved."
   }
 
   ,"toast": {
@@ -356,5 +356,24 @@
     "regionKajiado":    "Kajiado District",
     "regionKiambu":     "Kiambu District",
     "regionNakuru":     "Nakuru District"
+  }
+
+  ,"authGate": {
+    "title": "Join Fresheri to continue",
+    "subtitle": "Create a free account to view exact pickup locations, place bulk orders, and connect directly with verified farmer cooperatives.",
+    "signUpBtn": "Create Free Account",
+    "signInBtn": "Sign In",
+    "alreadyHave": "Already have an account?",
+    "noAccount": "New to Fresheri?",
+    "actionViewDetails": "To view full details and pickup options",
+    "actionPlaceOrder": "To place a bulk order",
+    "actionContact": "To contact the cooperative",
+    "actionPublish": "To publish your harvest",
+    "actionWishlist": "To save listings",
+    "actionFilter": "To use personalized filters",
+    "valueProp1": "View exact pickup locations & farmer contacts",
+    "valueProp2": "Place bulk orders directly with cooperatives",
+    "valueProp3": "Get SMS updates at every delivery stage",
+    "privacy": "Your identity & farm details stay private until order confirmation."
   }
 }
