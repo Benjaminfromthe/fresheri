@@ -18,9 +18,9 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const NAV_LINKS = [
-    { href: "/",           label: t("home")       },
-    { href: "/marketplace",label: t("marketplace") },
-    { href: "/#how",       label: t("howItWorks")  },
+    { href: "/",       label: t("marketplace") },
+    { href: "/about",  label: t("about")       },
+    { href: "/about#how", label: t("howItWorks") },
   ] as const;
 
   const isActive = (href: string) =>

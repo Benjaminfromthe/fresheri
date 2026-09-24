@@ -11,6 +11,9 @@ import FilterSidebar    from "@/components/marketplace/FilterSidebar";
 import ProduceCard      from "@/components/marketplace/ProduceCard";
 import CheckoutModal    from "@/components/marketplace/CheckoutModal";
 import { toast }        from "@/components/ui/Toaster";
+import { Link }         from "@/i18n/navigation";
+import { getStoredUser } from "@/lib/api-client";
+import { UserPlus, X as CloseIcon } from "lucide-react";
 
 import { MOCK_LISTINGS }        from "@/lib/mock-listings";
 import { placeOrderBatch }      from "@/lib/api-client";
@@ -50,6 +53,69 @@ function applyFilters(
     }
     return true;
   });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sign-up CTA banner — shown at top of grid for guests
+// ─────────────────────────────────────────────────────────────
+
+function SignUpBanner() {
+  const t = useTranslations("marketplace");
+  const [dismissed, setDismissed] = useState(() => {
+    try { return typeof window !== "undefined" && !!localStorage.getItem("banner_dismissed"); }
+    catch { return false; }
+  });
+
+  // Don't show if user is logged in or already dismissed
+  const isLoggedIn = typeof window !== "undefined" && !!getStoredUser();
+  if (isLoggedIn || dismissed) return null;
+
+  return (
+    <div className="relative mb-6 bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
+
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+          <UserPlus size={20} className="text-white" />
+        </div>
+        <div>
+          <p className="font-bold text-base">
+            {t("bannerTitle") as string || "Create a free account to place orders"}
+          </p>
+          <p className="text-green-100 text-sm mt-0.5">
+            {t("bannerDesc") as string || "Sign up in 30 seconds. Buy directly from verified cooperatives."}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 shrink-0">
+        <Link
+          href="/auth"
+          className="flex items-center gap-2 bg-white text-green-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-green-50 transition-colors whitespace-nowrap"
+        >
+          <UserPlus size={15} />
+          Sign Up Free
+        </Link>
+        <Link
+          href="/auth"
+          className="text-white/80 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
+        >
+          Sign In
+        </Link>
+        <button
+          onClick={() => {
+            setDismissed(true);
+            try { localStorage.setItem("banner_dismissed", "1"); } catch { /* */ }
+          }}
+          className="text-white/60 hover:text-white transition-colors ml-1"
+          aria-label="Dismiss"
+        >
+          <CloseIcon size={16} />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -166,7 +232,7 @@ export default function MarketplacePage() {
                 aria-label={`Cart — ${cartCount} items`}
               >
                 <ShoppingCart size={16} />
-                <span className="hidden sm:inline">{cartCount > 0 ? `${cartCount}` : tc("common" as never) }</span>
+                <span className="hidden sm:inline">{cartCount > 0 ? `${cartCount}` : ""}</span>
                 {cartCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-400 text-gray-900 text-xs font-bold rounded-full flex items-center justify-center">
                     {cartCount}
@@ -202,6 +268,10 @@ export default function MarketplacePage() {
 
       {/* Main layout */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
+
+        {/* Sign-up CTA banner — shown to unauthenticated users */}
+        <SignUpBanner />
+
         <div className="flex gap-6">
 
           {/* Desktop filter sidebar */}
