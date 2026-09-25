@@ -42,17 +42,21 @@ export interface ProduceListing {
 // ── Filter state ─────────────────────────────────────────────
 
 export interface MarketplaceFilters {
-  category: string;
+  category:       string;
   minAvailableQty: number;
-  location: string;
-  fulfillment: DeliveryOption | "ALL";
+  province:       string;   // Rwanda province ID or ""
+  district:       string;   // Rwanda district name or ""
+  location:       string;   // legacy text search on region
+  fulfillment:    DeliveryOption | "ALL";
 }
 
 export const DEFAULT_FILTERS: MarketplaceFilters = {
-  category: "",
+  category:       "",
   minAvailableQty: 0,
-  location: "",
-  fulfillment: "ALL",
+  province:       "",
+  district:       "",
+  location:       "",
+  fulfillment:    "ALL",
 };
 
 // ── Cart ─────────────────────────────────────────────────────

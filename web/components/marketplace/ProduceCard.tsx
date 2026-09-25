@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import {
   MapPin, CalendarCheck, Package, Leaf,
   Minus, Plus, ShoppingCart, BadgeCheck,
-  ShieldCheck, Users, ArrowRight,
+  ShieldCheck, ArrowRight,
 } from "lucide-react";
 import { ProduceListing, DeliveryOption } from "@/types/marketplace";
 import { BASE_DELIVERY_FEE } from "@/lib/constants";
@@ -154,7 +154,7 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
       {/* ── Body ── */}
       <div className="p-4 flex flex-col flex-1 gap-2.5">
 
-        {/* Name + variety + seller */}
+        {/* Name + variety + trust badge */}
         <div>
           <h3 className="font-bold text-gray-900 text-base leading-tight">
             {translatedName}
@@ -162,14 +162,24 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
               <span className="ml-1 font-normal text-gray-400 text-sm">({listing.variety})</span>
             )}
           </h3>
-          <div className="flex items-center gap-1 mt-0.5">
-            {listing.sellerVerified
-              ? <BadgeCheck size={12} className="text-blue-500 shrink-0" />
-              : <ShieldCheck size={12} className="text-gray-300 shrink-0" />}
-            <span className="text-xs text-gray-500 truncate">
-              <Users size={10} className="inline mr-0.5 text-gray-400" />
-              {listing.sellerDisplayName}
-            </span>
+          {/* PRIVACY: show anonymous trust badge — real name hidden until post-order */}
+          <div className="flex items-center gap-1 mt-1">
+            {listing.isOrganic ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                <BadgeCheck size={10} />
+                {tc("organicCoop")}
+              </span>
+            ) : listing.sellerVerified ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+                <BadgeCheck size={10} />
+                {tc("verifiedCoop")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">
+                <ShieldCheck size={10} />
+                {tc("verifiedFarmer")}
+              </span>
+            )}
           </div>
         </div>
 

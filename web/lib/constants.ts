@@ -12,8 +12,8 @@ if (typeof window !== "undefined" && !process.env.NEXT_PUBLIC_API_URL) {
   console.warn("[Fresheri] NEXT_PUBLIC_API_URL is not set — using fallback:", API_BASE_URL);
 }
 
-/** Flat base delivery fee shown in UI (KES/RWF) */
-export const BASE_DELIVERY_FEE = 500;
+/** Flat base delivery fee shown in UI (RWF — Rwandan Francs) */
+export const BASE_DELIVERY_FEE = 2500;
 
 /** Default pagination page size */
 export const DEFAULT_PAGE_SIZE = 20;

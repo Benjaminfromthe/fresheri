@@ -69,7 +69,7 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
   const {
     produceName, variety, region, sellerDisplayName, sellerVerified,
     imageFile, gradientFrom, gradientTo, emoji,
-    availableQtyKg, unitPriceKes, harvestDate, fulfillment,
+    availableQtyKg, unitPriceRwf, harvestDate, fulfillment,
     isOrganic, categoryName,
   } = produce;
 
@@ -123,11 +123,24 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
               <span className="ml-1 font-normal text-gray-400 text-sm">({variety})</span>
             )}
           </h3>
-          <div className="flex items-center gap-1 mt-0.5">
-            {sellerVerified
-              ? <BadgeCheck size={12} className="text-blue-500 shrink-0" />
-              : <ShieldCheck size={12} className="text-gray-300 shrink-0" />}
-            <span className="text-xs text-gray-500 truncate">{sellerDisplayName}</span>
+          <div className="flex items-center gap-1 mt-1">
+            {/* PRIVACY: anonymous trust badge — real coop name hidden until post-order */}
+            {isOrganic ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                <BadgeCheck size={10} />
+                {tc("organicCoop")}
+              </span>
+            ) : sellerVerified ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+                <BadgeCheck size={10} />
+                {tc("verifiedCoop")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">
+                <ShieldCheck size={10} />
+                {tc("verifiedFarmer")}
+              </span>
+            )}
           </div>
         </div>
 
@@ -150,7 +163,7 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
         {/* Price */}
         <div className="flex items-baseline gap-1 mt-1">
           <span className="text-xl font-bold text-green-700">
-            {tc("currency")} {unitPriceKes.toLocaleString()}
+            {tc("currency")} {unitPriceRwf.toLocaleString()}
           </span>
           <span className="text-xs text-gray-400">{tc("perKg")}</span>
         </div>

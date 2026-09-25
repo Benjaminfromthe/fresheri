@@ -14,7 +14,7 @@
     "free": "Free",
     "organic": "Organic",
     "verified": "Verified",
-    "currency": "KES",
+    "currency": "RWF",
     "perKg": "/ kg",
     "perTon": "/ ton",
     "kgUnit": "kg",
@@ -25,7 +25,10 @@
     "privacyProtected": "Privacy protected",
     "continueShoppingBtn": "Continue Shopping",
     "soldOut": "SOLD OUT",
-    "partialStock": "Partial stock"
+    "partialStock": "Partial stock",
+    "verifiedCoop": "Verified Cooperative Member",
+    "verifiedFarmer": "Verified Commercial Farmer",
+    "organicCoop": "Verified Organic Cooperative"
   },
   "navigation": {
     "marketplace": "Marketplace",
@@ -167,7 +170,16 @@
     "fulfillmentAll": "All Options",
     "fulfillmentPickup": "Pickup Only",
     "fulfillmentDelivery": "Delivery Only",
-    "customKgPlaceholder": "Custom kg…"
+    "customKgPlaceholder": "Custom kg…",
+    "province": "Province",
+    "allProvinces": "All Provinces",
+    "district": "District",
+    "allDistricts": "All Districts",
+    "kigali": "Kigali City",
+    "north": "Northern Province",
+    "south": "Southern Province",
+    "east": "Eastern Province",
+    "west": "Western Province"
   },
   "fulfillment": {
     "method": "Fulfillment Method",

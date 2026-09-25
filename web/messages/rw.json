@@ -25,7 +25,10 @@
     "privacyProtected": "Amakuru yawe arinzwe",
     "continueShoppingBtn": "Komeza Kugura",
     "soldOut": "BIRANGIYE",
-    "partialStock": "Bisigaye bike"
+    "partialStock": "Bisigaye bike",
+    "verifiedCoop": "Umunyamuryango w'Ikoperative Yemejwe",
+    "verifiedFarmer": "Umuhinzi w'Ubucuruzi Yemejwe",
+    "organicCoop": "Ikoperative ya Kamere Yemejwe"
   },
   "navigation": {
     "marketplace": "Isoko",
@@ -167,7 +170,16 @@
     "fulfillmentAll": "Uburyo bwose",
     "fulfillmentPickup": "Gufata gusa",
     "fulfillmentDelivery": "Koherezwa gusa",
-    "customKgPlaceholder": "Andika kg…"
+    "customKgPlaceholder": "Andika kg…",
+    "province": "Intara",
+    "allProvinces": "Intara Zose",
+    "district": "Akarere",
+    "allDistricts": "Uturere Twose",
+    "kigali": "Umujyi wa Kigali",
+    "north": "Intara y'Amajyaruguru",
+    "south": "Intara y'Amajyepfo",
+    "east": "Intara y'Iburasirazuba",
+    "west": "Intara y'Iburengerazuba"
   },
   "fulfillment": {
     "method": "Uburyo bwo kuronka",

@@ -21,7 +21,7 @@ interface CheckoutModalProps {
 }
 
 function calcTotals(cart: CartItem[], deliveryOption: DeliveryOption): CheckoutTotals {
-  const currency   = cart[0]?.listing.currency ?? "KES";
+  const currency   = cart[0]?.listing.currency ?? "RWF";
   const subtotal   = cart.reduce((sum, item) => sum + item.quantityKg * item.listing.unitPrice, 0);
   const deliveryFee = deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0;
   return { subtotal, deliveryFee, total: subtotal + deliveryFee, currency };

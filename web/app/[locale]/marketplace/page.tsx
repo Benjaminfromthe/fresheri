@@ -40,7 +40,14 @@ function applyFilters(
     if (l.status === "SOLD_OUT") return false;
     if (filters.category && l.categoryName !== filters.category) return false;
     if (filters.minAvailableQty > 0 && l.availableQuantity < filters.minAvailableQty) return false;
-    if (filters.location && !l.region.toLowerCase().includes(filters.location.toLowerCase())) return false;
+
+    // Province/district filter (new) takes priority over legacy location
+    if (filters.district) {
+      if (!l.region.toLowerCase().includes(filters.district.toLowerCase())) return false;
+    } else if (filters.location && filters.location !== filters.province) {
+      if (!l.region.toLowerCase().includes(filters.location.toLowerCase())) return false;
+    }
+
     if (filters.fulfillment !== "ALL" && !l.deliveryOptions.includes(filters.fulfillment as DeliveryOption)) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -151,7 +158,7 @@ export default function MarketplacePage() {
 
   const cartCount = cart.length;
   const cartTotal = cart.reduce((sum, i) => sum + i.quantityKg * i.listing.unitPrice, 0);
-  const currency  = cart[0]?.listing.currency ?? "KES";
+  const currency  = cart[0]?.listing.currency ?? "RWF";
   const isAuthed  = typeof window !== "undefined" && !!getStoredUser();
 
   return (
