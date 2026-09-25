@@ -9,9 +9,9 @@
 
 :root {
   /* Canvas */
-  --bg-canvas:        #ffffff;
-  --bg-surface:       #f8fafc;   /* slate-50 */
-  --bg-elevated:      #f1f5f9;   /* slate-100 */
+  --bg-canvas:        #f8fafc;   /* slate-50 — light page background */
+  --bg-surface:       #ffffff;   /* white — cards, sidebars */
+  --bg-elevated:      #f1f5f9;   /* slate-100 — inset surfaces */
 
   /* Borders */
   --border-default:   #e2e8f0;   /* slate-200 */
@@ -22,12 +22,12 @@
   --text-secondary:   #475569;   /* slate-600 */
   --text-muted:       #94a3b8;   /* slate-400 */
 
-  /* Fresheri green — header stays vibrant in light mode */
-  --header-from:      #065f46;   /* emerald-800 */
-  --header-to:        #059669;   /* emerald-600 */
+  /* Fresheri green banner — vibrant in light mode */
+  --header-from:      #059669;   /* emerald-600 */
+  --header-to:        #047857;   /* emerald-700 */
 
   /* Transitions */
-  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  --transition-theme: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 .dark {
@@ -45,9 +45,9 @@
   --text-secondary:   #94a3b8;   /* slate-400 */
   --text-muted:       #475569;   /* slate-600 */
 
-  /* Header — desaturated/deepened green in dark mode */
-  --header-from:      #022c22;   /* emerald-950 */
-  --header-to:        #064e3b;   /* emerald-900 */
+  /* Header — desaturated deep green; prevents screen blindness in dark */
+  --header-from:      #064e3b;   /* emerald-900 */
+  --header-to:        #065f46;   /* emerald-800 */
 }
 
 /* ── Font stack ─────────────────────────────────────────── */
@@ -56,7 +56,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* ── Base body — smooth 300ms theme transitions ──────────── */
+/* ── Color scheme hint — prevents OS-level flash ────────── */
 html {
   color-scheme: light;
 }
@@ -64,6 +64,7 @@ html.dark {
   color-scheme: dark;
 }
 
+/* ── Base body ───────────────────────────────────────────── */
 body {
   background-color: var(--bg-canvas);
   color:            var(--text-primary);
@@ -76,10 +77,19 @@ body {
 ::-webkit-scrollbar-track  { background: var(--bg-surface); }
 ::-webkit-scrollbar-thumb  { background: var(--border-default); border-radius: 3px; }
 
-/* ── Fresheri Header gradient — uses CSS vars for dark/light ─ */
+/* ── Fresheri Header gradient — CSS vars flip automatically ─
+   Light: emerald-600 → emerald-700  |  Dark: emerald-900 → emerald-800 */
 .fresheri-header {
   background: linear-gradient(to right, var(--header-from), var(--header-to));
-  transition: background 0.3s ease;
+  transition: background 0.2s ease-in-out;
+}
+
+/* ── Shared transition utility — applied to every themed layer */
+.theme-transition {
+  transition: background-color 0.2s ease-in-out,
+              color 0.2s ease-in-out,
+              border-color 0.2s ease-in-out,
+              box-shadow 0.2s ease-in-out;
 }
 
 /* ── Prevent theme flash on initial load ─────────────────── */

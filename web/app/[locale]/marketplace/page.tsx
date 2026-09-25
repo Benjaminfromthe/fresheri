@@ -162,29 +162,29 @@ export default function MarketplacePage() {
   const isAuthed  = typeof window !== "undefined" && !!getStoredUser();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-all duration-200 ease-in-out">
 
       <Header />
 
-      {/* ── Green marketplace header bar ── */}
-      <div className="fresheri-header text-white">
+      {/* ── Marketplace banner — vibrant emerald light / deep emerald dark ── */}
+      <div className="bg-emerald-600 dark:bg-emerald-900 text-white transition-all duration-200 ease-in-out">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold">{t("heroTitle")}</h1>
-              <p className="text-green-100 text-sm mt-1 max-w-md">{t("heroSubtitle")}</p>
+              <p className="text-emerald-100 dark:text-emerald-200 text-sm mt-1 max-w-md">{t("heroSubtitle")}</p>
             </div>
 
             <div className="flex gap-2 w-full sm:w-auto sm:min-w-80">
               {/* Search */}
               <div className="relative flex-1">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="search"
                   placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white dark:bg-slate-800 transition-all"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white dark:bg-slate-800 transition-all duration-200 ease-in-out"
                 />
               </div>
 
@@ -222,9 +222,17 @@ export default function MarketplacePage() {
               { label: t("cooperatives"),    value: new Set(MOCK_LISTINGS.map((l) => l.sellerDisplayName)).size },
               { label: t("cropCategories"),  value: new Set(MOCK_LISTINGS.map((l) => l.categoryName)).size },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
-                <p className="text-lg font-bold">{value}</p>
-                <p className="text-green-100 text-xs">{label}</p>
+              <div
+                key={label}
+                className="
+                  bg-white/20 dark:bg-slate-900/60
+                  backdrop-blur-sm rounded-xl px-4 py-2
+                  border border-white/30 dark:border-slate-700
+                  transition-all duration-200 ease-in-out
+                "
+              >
+                <p className="text-lg font-bold text-white dark:text-emerald-400">{value}</p>
+                <p className="text-emerald-100 dark:text-slate-400 text-xs">{label}</p>
               </div>
             ))}
           </div>
@@ -243,7 +251,7 @@ export default function MarketplacePage() {
 
           {/* Desktop sidebar */}
           <div className="hidden lg:block sticky top-20 self-start shrink-0">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 p-5 w-64 transition-colors duration-300">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 w-64 transition-all duration-200 ease-in-out">
               <FilterSidebar
                 filters={filters}
                 onChange={setFilters}
@@ -255,14 +263,14 @@ export default function MarketplacePage() {
           {/* Grid */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-sm text-gray-500 dark:text-slate-400">
-                <span className="font-semibold text-gray-800 dark:text-slate-200">{filteredListings.length}</span>{" "}
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{filteredListings.length}</span>{" "}
                 {t("listingsAvailable", { count: filteredListings.length })}
               </p>
               {cartCount > 0 && (
                 <button
                   onClick={handleOpenCheckout}
-                  className="flex items-center gap-2 text-sm text-green-700 font-semibold hover:underline"
+                  className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold hover:underline transition-all duration-200"
                 >
                   <ShoppingCart size={14} />
                   {cartCount} item{cartCount !== 1 ? "s" : ""} ·{" "}
@@ -303,10 +311,10 @@ export default function MarketplacePage() {
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 shadow-2xl flex flex-col transition-colors duration-300">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
-              <span className="font-bold text-gray-900 dark:text-slate-100">{tc("search")}</span>
-              <button onClick={() => setMobileSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 dark:text-slate-300">
+          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 shadow-2xl flex flex-col transition-all duration-200 ease-in-out">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+              <span className="font-bold text-slate-900 dark:text-slate-100">{tc("search")}</span>
+              <button onClick={() => setMobileSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all duration-200">
                 <X size={16} />
               </button>
             </div>
@@ -367,10 +375,10 @@ function GuestBanner({ onGate }: { onGate: () => void }) {
             <Sprout size={20} className="text-green-700 dark:text-green-400" />
           </div>
           <div>
-            <p className="font-bold text-gray-900 dark:text-slate-100 text-sm">
+            <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
               Browse freely — sign up when you're ready to order
             </p>
-            <p className="text-gray-500 dark:text-slate-400 text-xs mt-0.5">
+            <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">
               View all products, prices and regions without an account. Create one free to place orders.
             </p>
           </div>
