@@ -81,7 +81,7 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
   const imageSrc = `/images/assets/products/${imageFile}`;
 
   return (
-    <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
+    <article className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
 
       {/* Image / Gradient placeholder */}
       <div className={`relative h-44 bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center overflow-hidden`}>
@@ -117,26 +117,26 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
 
         {/* Produce name (translated) + variety + seller */}
         <div>
-          <h3 className="font-bold text-gray-900 text-base leading-tight">
+          <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base leading-tight">
             {translatedName}
             {variety && (
-              <span className="ml-1 font-normal text-gray-400 text-sm">({variety})</span>
+              <span className="ml-1 font-normal text-gray-400 dark:text-slate-500 text-sm">({variety})</span>
             )}
           </h3>
           <div className="flex items-center gap-1 mt-1">
             {/* PRIVACY: anonymous trust badge — real coop name hidden until post-order */}
             {isOrganic ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 px-2 py-0.5 rounded-full">
                 <BadgeCheck size={10} />
                 {tc("organicCoop")}
               </span>
             ) : sellerVerified ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
                 <BadgeCheck size={10} />
                 {tc("verifiedCoop")}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700 px-2 py-0.5 rounded-full">
                 <ShieldCheck size={10} />
                 {tc("verifiedFarmer")}
               </span>
@@ -146,15 +146,15 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
 
         {/* Meta */}
         <ul className="space-y-1">
-          <li className="flex items-center gap-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
             <MapPin size={11} className="text-green-500 shrink-0" />
             {translatedRegion}
           </li>
-          <li className="flex items-center gap-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
             <CalendarCheck size={11} className="text-green-500 shrink-0" />
             {t("harvestedOn", { date: formatDate(harvestDate, locale) })}
           </li>
-          <li className="flex items-center gap-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
             <Package size={11} className="text-green-500 shrink-0" />
             {t("available", { qty: formatQty(availableQtyKg) })}
           </li>
@@ -162,10 +162,10 @@ export default function LandingProduceCard({ produce }: LandingProduceCardProps)
 
         {/* Price */}
         <div className="flex items-baseline gap-1 mt-1">
-          <span className="text-xl font-bold text-green-700">
+          <span className="text-xl font-bold text-green-700 dark:text-green-400">
             {tc("currency")} {unitPriceRwf.toLocaleString()}
           </span>
-          <span className="text-xs text-gray-400">{tc("perKg")}</span>
+          <span className="text-xs text-gray-400 dark:text-slate-500">{tc("perKg")}</span>
         </div>
 
         {/* Fulfillment chips */}

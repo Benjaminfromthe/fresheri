@@ -184,19 +184,19 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
       onClick={(e) => e.target === e.currentTarget && onClose()}
       role="dialog" aria-modal="true" aria-label={t("reviewTitle")}
     >
-      <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden transition-colors duration-300">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800 shrink-0">
           <div>
-            <h2 className="font-bold text-gray-900 text-lg">{STEP_TITLE[step]}</h2>
+            <h2 className="font-bold text-gray-900 dark:text-slate-100 text-lg">{STEP_TITLE[step]}</h2>
             {step !== "success" && (
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                 {t("itemCount", { count: cart.length })} · {fmt(totals.total)}
               </p>
             )}
           </div>
-          <button onClick={onClose} aria-label={tc("close")} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition">
+          <button onClick={onClose} aria-label={tc("close")} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition">
             <X size={16} />
           </button>
         </div>
@@ -205,7 +205,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
         {step !== "success" && (
           <div className="flex px-5 py-2 gap-1 shrink-0">
             {STEPS.map((s, i) => (
-              <div key={s} className="flex-1 h-1 rounded-full overflow-hidden bg-gray-200">
+              <div key={s} className="flex-1 h-1 rounded-full overflow-hidden bg-gray-200 dark:bg-slate-700">
                 <div className={`h-full rounded-full transition-all duration-300 ${STEPS.indexOf(step) >= i ? "bg-green-500" : "bg-transparent"}`} />
               </div>
             ))}
@@ -218,23 +218,23 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
           {/* Review */}
           {step === "review" && (
             cart.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-gray-400 dark:text-slate-500">
                 <Package size={40} className="mx-auto mb-3 opacity-40" />
                 <p>{t("emptyCart")}</p>
               </div>
             ) : (
               <ul className="space-y-3">
                 {cart.map((item) => (
-                  <li key={item.listing.id} className="flex items-start gap-3 bg-gray-50 rounded-xl p-3">
+                  <li key={item.listing.id} className="flex items-start gap-3 bg-gray-50 dark:bg-slate-800 rounded-xl p-3">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold text-base shrink-0">
                       {item.listing.produceName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-800 text-sm truncate">
+                      <p className="font-semibold text-gray-800 dark:text-slate-200 text-sm truncate">
                         {item.listing.produceName}
-                        {item.listing.variety && <span className="text-gray-400 font-normal"> ({item.listing.variety})</span>}
+                        {item.listing.variety && <span className="text-gray-400 dark:text-slate-500 font-normal"> ({item.listing.variety})</span>}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                         {item.quantityKg.toLocaleString()} kg · {item.listing.currency} {item.listing.unitPrice}/kg
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -276,10 +276,10 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
                       setAddress(e.target.value);
                       if (e.target.value.trim()) setAddrError("");
                     }}
-                    className={`w-full border-2 rounded-xl px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 transition-all duration-150 ${
+                    className={`w-full border-2 rounded-xl px-3.5 py-3 text-sm text-gray-900 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none focus:outline-none focus:ring-2 transition-all duration-150 ${
                       addressError
-                        ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100"
-                        : "border-gray-300 bg-white hover:border-gray-400 focus:border-green-500 focus:ring-green-100"
+                        ? "border-red-400 bg-red-50 dark:bg-red-950/30 focus:border-red-500 focus:ring-red-100"
+                        : "border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-400 focus:border-green-500 focus:ring-green-100 dark:focus:ring-green-900/30"
                     }`}
                   />
                   {addressError && <p className="text-xs text-red-500">{addressError}</p>}
@@ -288,17 +288,17 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
 
               <PrivacyBadge message={deliveryOption === "SELF_PICKUP" ? tp("pickupMessage") : tp("deliveryMessage")} />
 
-              <div className="bg-gray-50 rounded-xl p-3 space-y-1.5 text-sm">
-                <div className="flex justify-between text-gray-600"><span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span></div>
-                <div className="flex justify-between text-gray-600">
+              <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 space-y-1.5 text-sm">
+                <div className="flex justify-between text-gray-600 dark:text-slate-400"><span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span></div>
+                <div className="flex justify-between text-gray-600 dark:text-slate-400">
                   <span>{t("deliveryFee")}</span>
-                  <span className={totals.deliveryFee === 0 ? "text-green-600 font-medium" : "text-purple-600"}>
+                  <span className={totals.deliveryFee === 0 ? "text-green-600 dark:text-green-400 font-medium" : "text-purple-600 dark:text-purple-400"}>
                     {totals.deliveryFee === 0 ? t("freePickup") : fmt(totals.deliveryFee)}
                   </span>
                 </div>
-                <hr className="border-gray-200" />
-                <div className="flex justify-between font-bold text-gray-900">
-                  <span>{t("total")}</span><span className="text-green-700">{fmt(totals.total)}</span>
+                <hr className="border-gray-200 dark:border-slate-700" />
+                <div className="flex justify-between font-bold text-gray-900 dark:text-slate-100">
+                  <span>{t("total")}</span><span className="text-green-700 dark:text-green-400">{fmt(totals.total)}</span>
                 </div>
               </div>
             </div>
@@ -307,27 +307,27 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
           {/* Confirm */}
           {step === "confirm" && (
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
-                <div className="flex justify-between text-gray-600"><span>{t("items")}</span><span>{cart.length}</span></div>
-                <div className="flex justify-between text-gray-600">
+              <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 space-y-2 text-sm">
+                <div className="flex justify-between text-gray-600 dark:text-slate-400"><span>{t("items")}</span><span>{cart.length}</span></div>
+                <div className="flex justify-between text-gray-600 dark:text-slate-400">
                   <span>{t("fulfillmentLabel")}</span>
                   <span className="flex items-center gap-1">
                     {deliveryOption === "SELF_PICKUP" ? <><Package size={12} />{t("selfPickupLabel")}</> : <><Truck size={12} />{t("deliveryLabel")}</>}
                   </span>
                 </div>
                 {deliveryOption === "DELIVERED" && deliveryAddress && (
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-slate-400">
                     <span>{t("addressLabel")}</span>
                     <span className="text-right max-w-[55%] text-xs">{deliveryAddress}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-gray-600"><span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span></div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-slate-400"><span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span></div>
+                <div className="flex justify-between text-gray-600 dark:text-slate-400">
                   <span>{t("deliveryFee")}</span><span>{totals.deliveryFee === 0 ? tc("free") : fmt(totals.deliveryFee)}</span>
                 </div>
-                <hr className="border-gray-200" />
-                <div className="flex justify-between font-bold text-gray-900 text-base">
-                  <span>{t("total")}</span><span className="text-green-700">{fmt(totals.total)}</span>
+                <hr className="border-gray-200 dark:border-slate-700" />
+                <div className="flex justify-between font-bold text-gray-900 dark:text-slate-100 text-base">
+                  <span>{t("total")}</span><span className="text-green-700 dark:text-green-400">{fmt(totals.total)}</span>
                 </div>
               </div>
               {deliveryOption === "SELF_PICKUP" && (
@@ -336,7 +336,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
                   <p className="text-xs text-amber-700">{t("preConfirmPickupNote")}</p>
                 </div>
               )}
-              <p className="text-xs text-gray-400 text-center">{t("paymentNote")}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 text-center">{t("paymentNote")}</p>
             </div>
           )}
 
@@ -344,11 +344,11 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
           {step === "success" && (
             <div className="space-y-5">
               <div className="text-center pt-2">
-                <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
+                <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-3">
                   <CheckCircle2 size={32} className="text-green-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-xl">{t("successTitle")}!</h3>
-                <p className="text-gray-400 text-xs mt-1">{t("smsConfirmationNote")}</p>
+                <h3 className="font-bold text-gray-900 dark:text-slate-100 text-xl">{t("successTitle")}!</h3>
+                <p className="text-gray-400 dark:text-slate-500 text-xs mt-1">{t("smsConfirmationNote")}</p>
               </div>
               {pickupContacts.map((c, i) => <PickupContactCard key={i} contact={c} />)}
               {hasDelivery && <DeliveryTrackingCard orderNumber={firstOrderNumber} />}
@@ -361,7 +361,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
 
         {/* Footer CTA */}
         {step !== "success" && cart.length > 0 && (
-          <div className="px-5 py-4 border-t border-gray-100 shrink-0">
+          <div className="px-5 py-4 border-t border-gray-100 dark:border-slate-800 shrink-0">
             {step === "review" && (
               <button onClick={() => setStep("fulfillment")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-semibold py-3 rounded-xl transition-all">
                 {t("chooseDelivery")} <ChevronRight size={16} />
@@ -369,7 +369,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
             )}
             {step === "fulfillment" && (
               <div className="flex gap-3">
-                <button onClick={() => setStep("review")} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition">
+                <button onClick={() => setStep("review")} className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition">
                   {tc("back")}
                 </button>
                 <button onClick={validateAndNext} className="flex-[2] flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all">
@@ -379,7 +379,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
             )}
             {step === "confirm" && (
               <div className="flex gap-3">
-                <button onClick={() => setStep("fulfillment")} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition">
+                <button onClick={() => setStep("fulfillment")} className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition">
                   {tc("back")}
                 </button>
                 <button onClick={handlePlaceOrder} disabled={loading} className="flex-[2] flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-3 rounded-xl transition-all">

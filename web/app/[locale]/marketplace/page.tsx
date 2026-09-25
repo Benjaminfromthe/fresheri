@@ -162,12 +162,12 @@ export default function MarketplacePage() {
   const isAuthed  = typeof window !== "undefined" && !!getStoredUser();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
 
       <Header />
 
       {/* ── Green marketplace header bar ── */}
-      <div className="bg-gradient-to-r from-green-700 to-emerald-500 text-white">
+      <div className="fresheri-header text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -184,7 +184,7 @@ export default function MarketplacePage() {
                   placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white transition-all"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white dark:bg-slate-800 transition-all"
                 />
               </div>
 
@@ -243,7 +243,7 @@ export default function MarketplacePage() {
 
           {/* Desktop sidebar */}
           <div className="hidden lg:block sticky top-20 self-start shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-64">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 p-5 w-64 transition-colors duration-300">
               <FilterSidebar
                 filters={filters}
                 onChange={setFilters}
@@ -255,8 +255,8 @@ export default function MarketplacePage() {
           {/* Grid */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-sm text-gray-500">
-                <span className="font-semibold text-gray-800">{filteredListings.length}</span>{" "}
+              <p className="text-sm text-gray-500 dark:text-slate-400">
+                <span className="font-semibold text-gray-800 dark:text-slate-200">{filteredListings.length}</span>{" "}
                 {t("listingsAvailable", { count: filteredListings.length })}
               </p>
               {cartCount > 0 && (
@@ -272,7 +272,7 @@ export default function MarketplacePage() {
             </div>
 
             {filteredListings.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
+              <div className="flex flex-col items-center justify-center py-24 text-gray-400 dark:text-slate-500 gap-3">
                 <Sprout size={48} className="opacity-30" />
                 <p className="font-semibold text-lg">{t("noListingsTitle")}</p>
                 <button
@@ -303,10 +303,10 @@ export default function MarketplacePage() {
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <span className="font-bold text-gray-900">{tc("search")}</span>
-              <button onClick={() => setMobileSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 shadow-2xl flex flex-col transition-colors duration-300">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
+              <span className="font-bold text-gray-900 dark:text-slate-100">{tc("search")}</span>
+              <button onClick={() => setMobileSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 dark:text-slate-300">
                 <X size={16} />
               </button>
             </div>
@@ -360,17 +360,17 @@ function GuestBanner({ onGate }: { onGate: () => void }) {
   };
 
   return (
-    <div className="relative mb-6 rounded-2xl overflow-hidden shadow-sm border border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+    <div className="relative mb-6 rounded-2xl overflow-hidden shadow-sm border border-green-100 dark:border-green-900/40 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 transition-colors duration-300">
       <div className="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-            <Sprout size={20} className="text-green-700" />
+          <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
+            <Sprout size={20} className="text-green-700 dark:text-green-400" />
           </div>
           <div>
-            <p className="font-bold text-gray-900 text-sm">
+            <p className="font-bold text-gray-900 dark:text-slate-100 text-sm">
               Browse freely — sign up when you're ready to order
             </p>
-            <p className="text-gray-500 text-xs mt-0.5">
+            <p className="text-gray-500 dark:text-slate-400 text-xs mt-0.5">
               View all products, prices and regions without an account. Create one free to place orders.
             </p>
           </div>
@@ -384,7 +384,7 @@ function GuestBanner({ onGate }: { onGate: () => void }) {
           </button>
           <button
             onClick={dismiss}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors p-1"
             aria-label="Dismiss"
           >
             <X size={16} />

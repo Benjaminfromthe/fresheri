@@ -104,7 +104,7 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
   });
 
   return (
-    <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+    <article className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
 
       {/* ── Image — real photo or gradient fallback ── */}
       <div className={`relative h-44 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
@@ -156,26 +156,26 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
 
         {/* Name + variety + trust badge */}
         <div>
-          <h3 className="font-bold text-gray-900 text-base leading-tight">
+          <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base leading-tight">
             {translatedName}
             {listing.variety && (
-              <span className="ml-1 font-normal text-gray-400 text-sm">({listing.variety})</span>
+              <span className="ml-1 font-normal text-gray-400 dark:text-slate-500 text-sm">({listing.variety})</span>
             )}
           </h3>
           {/* PRIVACY: show anonymous trust badge — real name hidden until post-order */}
           <div className="flex items-center gap-1 mt-1">
             {listing.isOrganic ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 px-2 py-0.5 rounded-full">
                 <BadgeCheck size={10} />
                 {tc("organicCoop")}
               </span>
             ) : listing.sellerVerified ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
                 <BadgeCheck size={10} />
                 {tc("verifiedCoop")}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700 px-2 py-0.5 rounded-full">
                 <ShieldCheck size={10} />
                 {tc("verifiedFarmer")}
               </span>
@@ -185,15 +185,15 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
 
         {/* Meta */}
         <ul className="space-y-1">
-          <li className="flex items-center gap-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
             <MapPin size={11} className="text-green-500 shrink-0" />
             {translatedRegion}
           </li>
-          <li className="flex items-center gap-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
             <CalendarCheck size={11} className="text-green-500 shrink-0" />
             {t("harvestedOn", { date: harvestDateStr })}
           </li>
-          <li className="flex items-center gap-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
             <Package size={11} className="text-green-500 shrink-0" />
             {t("remaining", { qty: formatQty(listing.availableQuantity, listing.unit, tc("kgUnit"), tc("tonUnit")) })}
           </li>
@@ -201,10 +201,10 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
 
         {/* Price */}
         <div className="flex items-baseline gap-1">
-          <span className="text-xl font-bold text-green-700">
+          <span className="text-xl font-bold text-green-700 dark:text-green-400">
             {listing.currency} {listing.unitPrice.toLocaleString()}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 dark:text-slate-500">
             {listing.unit === "KG" ? tc("perKg") : tc("perTon")}
           </span>
         </div>
@@ -229,20 +229,20 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
             )}
 
             {/* Quantity selector */}
-            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-1">
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-slate-800 rounded-xl p-1">
               <button
                 onClick={() => setQty((q) => Math.max(minQty, q - step))}
                 disabled={qty <= minQty}
                 aria-label={tc("minLabel")}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white dark:bg-slate-700 shadow-sm text-gray-600 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <Minus size={14} />
               </button>
               <div className="text-center">
-                <span className="font-semibold text-gray-800 text-sm">
+                <span className="font-semibold text-gray-800 dark:text-slate-200 text-sm">
                   {qty.toLocaleString()} {tc("kgUnit")}
                 </span>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 dark:text-slate-500">
                   {listing.currency}{" "}
                   {lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   {fulfillment === "DELIVERED" && (
@@ -254,13 +254,13 @@ export default function ProduceCard({ listing, onAddToCart }: ProduceCardProps) 
                 onClick={() => setQty((q) => Math.min(maxQty, q + step))}
                 disabled={qty >= maxQty}
                 aria-label="+"
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-green-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white dark:bg-slate-700 shadow-sm text-gray-600 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <Plus size={14} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-gray-400 dark:text-slate-500 text-center">
               {t("minQtyHint", { min: minQty.toLocaleString(), step: step.toLocaleString() })}
             </p>
 

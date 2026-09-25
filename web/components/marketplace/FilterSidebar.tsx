@@ -68,7 +68,7 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
     <aside className="w-full lg:w-64 shrink-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <span className="flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-200">
+        <span className="flex items-center gap-2 font-semibold text-gray-800 dark:text-slate-200">
           <Filter size={16} className="text-green-600" />
           {t("title")}
         </span>
@@ -87,7 +87,7 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
 
         {/* ── Crop Category ── */}
         <section>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">
             {t("cropCategory")}
           </h3>
           <ul className="space-y-1">
@@ -96,8 +96,8 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
                 onClick={() => set("category", "")}
                 className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   filters.category === ""
-                    ? "bg-green-50 text-green-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                    ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
+                    : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                 }`}
               >
                 {t("allCategories")}
@@ -109,8 +109,8 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
                   onClick={() => set("category", cat)}
                   className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     filters.category === cat
-                      ? "bg-green-50 text-green-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                      ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
+                      : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                   }`}
                 >
                   {cat}
@@ -120,11 +120,11 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
           </ul>
         </section>
 
-        <hr className="border-gray-100 dark:border-gray-800" />
+        <hr className="border-gray-100 dark:border-slate-800" />
 
         {/* ── Min Available Quantity ── */}
         <section>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">
             {t("minAvailableQty")}
           </h3>
           <div className="grid grid-cols-3 gap-1.5">
@@ -135,7 +135,7 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
                 className={`py-1.5 rounded-lg text-xs font-medium transition-colors border ${
                   filters.minAvailableQty === qty
                     ? "bg-green-600 text-white border-green-600"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-green-400"
+                    : "bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-700 hover:border-green-400"
                 }`}
               >
                 {qty === 0
@@ -153,31 +153,31 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
               placeholder={t("customKgPlaceholder")}
               value={filters.minAvailableQty || ""}
               onChange={(e) => set("minAvailableQty", Number(e.target.value) || 0)}
-              className="w-full border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all hover:border-gray-400"
+              className="w-full border-2 border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 transition-all hover:border-gray-400"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-medium pointer-events-none">{tc("kgUnit")}</span>
           </div>
         </section>
 
-        <hr className="border-gray-100 dark:border-gray-800" />
+        <hr className="border-gray-100 dark:border-slate-800" />
 
         {/* ── Rwanda Location: Province + District ── */}
         <section>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
             <MapPin size={12} />
             {t("location")}
           </h3>
 
           {/* Province dropdown */}
           <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
+            <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
               {t("province")}
             </label>
             <div className="relative">
               <select
                 value={filters.province}
                 onChange={(e) => setProvince(e.target.value)}
-                className="w-full appearance-none border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 rounded-xl px-3 py-2.5 pr-8 text-sm text-gray-800 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all hover:border-gray-400 cursor-pointer"
+                className="w-full appearance-none border-2 border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-xl px-3 py-2.5 pr-8 text-sm text-gray-800 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 transition-all hover:border-gray-400 cursor-pointer"
               >
                 <option value="">{t("allProvinces")}</option>
                 {RWANDA_PROVINCES.map((prov) => (
@@ -194,14 +194,14 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
           {/* District dropdown — only shown when province is selected */}
           {filters.province && (
             <div className="space-y-2 mt-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
+              <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
                 {t("district")}
               </label>
               <div className="relative">
                 <select
                   value={filters.district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  className="w-full appearance-none border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 rounded-xl px-3 py-2.5 pr-8 text-sm text-gray-800 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all hover:border-gray-400 cursor-pointer"
+                  className="w-full appearance-none border-2 border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-xl px-3 py-2.5 pr-8 text-sm text-gray-800 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 transition-all hover:border-gray-400 cursor-pointer"
                 >
                   <option value="">{t("allDistricts")}</option>
                   {availableDistricts.map((dist) => (
@@ -234,11 +234,11 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
           )}
         </section>
 
-        <hr className="border-gray-100 dark:border-gray-800" />
+        <hr className="border-gray-100 dark:border-slate-800" />
 
         {/* ── Fulfillment ── */}
         <section>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">
             {t("fulfillment")}
           </h3>
           <div className="space-y-1">
@@ -248,8 +248,8 @@ export default function FilterSidebar({ filters, onChange, totalResults }: Filte
                 onClick={() => set("fulfillment", value)}
                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                   filters.fulfillment === value
-                    ? "bg-green-50 text-green-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                    ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
+                    : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span className="text-green-500">{icon}</span>

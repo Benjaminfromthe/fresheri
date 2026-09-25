@@ -1,49 +1,88 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════
+   Fresheri Design Tokens — Semantic Color System
+   All components reference these tokens via Tailwind dark: variants.
+   CSS variables are used for values that can't be expressed as
+   static Tailwind classes (e.g. the animated gradient backgrounds).
+═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-border: #f3f4f6;
-  --muted: #f9fafb;
-  --muted-foreground: #6b7280;
+  /* Canvas */
+  --bg-canvas:        #ffffff;
+  --bg-surface:       #f8fafc;   /* slate-50 */
+  --bg-elevated:      #f1f5f9;   /* slate-100 */
+
+  /* Borders */
+  --border-default:   #e2e8f0;   /* slate-200 */
+  --border-subtle:    #f1f5f9;   /* slate-100 */
+
+  /* Text */
+  --text-primary:     #0f172a;   /* slate-900 */
+  --text-secondary:   #475569;   /* slate-600 */
+  --text-muted:       #94a3b8;   /* slate-400 */
+
+  /* Fresheri green — header stays vibrant in light mode */
+  --header-from:      #065f46;   /* emerald-800 */
+  --header-to:        #059669;   /* emerald-600 */
+
+  /* Transitions */
+  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .dark {
-  --background: #0f1117;
-  --foreground: #f1f5f9;
-  --card: #1a1f2e;
-  --card-border: #2d3748;
-  --muted: #1e2433;
-  --muted-foreground: #94a3b8;
+  /* Canvas — comfortable charcoal, NOT pure black */
+  --bg-canvas:        #020617;   /* slate-950 */
+  --bg-surface:       #0f172a;   /* slate-900 */
+  --bg-elevated:      #1e293b;   /* slate-800 */
+
+  /* Borders */
+  --border-default:   #1e293b;   /* slate-800 */
+  --border-subtle:    #0f172a;   /* slate-900 */
+
+  /* Text — off-white for eye comfort, WCAG AA 4.5:1 on dark canvas */
+  --text-primary:     #f1f5f9;   /* slate-100 */
+  --text-secondary:   #94a3b8;   /* slate-400 */
+  --text-muted:       #475569;   /* slate-600 */
+
+  /* Header — desaturated/deepened green in dark mode */
+  --header-from:      #022c22;   /* emerald-950 */
+  --header-to:        #064e3b;   /* emerald-900 */
 }
 
+/* ── Font stack ─────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
+/* ── Base body — smooth 300ms theme transitions ──────────── */
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
 }
 
-/* Dark mode overrides for Tailwind utility classes */
-.dark .bg-white { background-color: var(--card) !important; }
-.dark .bg-gray-50 { background-color: var(--muted) !important; }
-.dark .bg-gray-100 { background-color: #1e2433 !important; }
-.dark .border-gray-100 { border-color: var(--card-border) !important; }
-.dark .border-gray-200 { border-color: #2d3748 !important; }
-.dark .text-gray-900 { color: #f1f5f9 !important; }
-.dark .text-gray-800 { color: #e2e8f0 !important; }
-.dark .text-gray-700 { color: #cbd5e1 !important; }
-.dark .text-gray-600 { color: #94a3b8 !important; }
-.dark .text-gray-500 { color: #64748b !important; }
-.dark .text-gray-400 { color: #475569 !important; }
-.dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.4) !important; }
-.dark .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5) !important; }
-.dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.6) !important; }
+body {
+  background-color: var(--bg-canvas);
+  color:            var(--text-primary);
+  font-family:      Arial, Helvetica, sans-serif;
+  transition:       var(--transition-theme);
+}
+
+/* ── Scrollbar — themed ──────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb  { background: var(--border-default); border-radius: 3px; }
+
+/* ── Fresheri Header gradient — uses CSS vars for dark/light ─ */
+.fresheri-header {
+  background: linear-gradient(to right, var(--header-from), var(--header-to));
+  transition: background 0.3s ease;
+}
+
+/* ── Prevent theme flash on initial load ─────────────────── */
+.no-transition * {
+  transition: none !important;
+}
