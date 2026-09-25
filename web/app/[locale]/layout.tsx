@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import Toaster           from "@/components/ui/Toaster";
 import ErrorBoundary     from "@/components/ui/ErrorBoundary";
+import ThemeProvider     from "@/components/ui/ThemeProvider";
 import "../globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -38,16 +39,19 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     <html
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider messages={messages}>
-          <GoogleAuthProvider>
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
-            <Toaster />
-          </GoogleAuthProvider>
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            <GoogleAuthProvider>
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+              <Toaster />
+            </GoogleAuthProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

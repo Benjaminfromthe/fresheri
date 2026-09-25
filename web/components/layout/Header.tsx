@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Sprout, Menu, X, User, ShoppingBag, ChevronDown, LogOut, Settings } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import LanguageSwitcher  from "@/components/LanguageSwitcher";
+import ThemeToggle       from "@/components/ui/ThemeToggle";
 import { getStoredUser, clearSession } from "@/lib/api-client";
 import { toast }         from "@/components/ui/Toaster";
 
@@ -69,7 +70,7 @@ export default function Header() {
     : "";
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 shadow-sm transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 
         {/* Logo */}
@@ -100,6 +101,7 @@ export default function Header() {
         {/* Right actions */}
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSwitcher />
+          <ThemeToggle />
 
           {user ? (
             /* ── Logged-in: user avatar + dropdown menu ── */
@@ -120,10 +122,10 @@ export default function Header() {
 
               {/* Dropdown */}
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
 
                   {/* User info header */}
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
                     <p className="font-semibold text-gray-900 text-sm truncate">
                       {user.firstName} {user.lastName}
                     </p>
@@ -199,7 +201,7 @@ export default function Header() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1 shadow-md">
+        <div className="md:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-4 space-y-1 shadow-md">
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
