@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────
-// Minimal country code picker — Rwanda (+250) default
-// Integrated inside FloatingInput as a prefix element
+// CountryCodePicker — integrated as FloatingInput prefix
 // ─────────────────────────────────────────────────────────────
 
 const COUNTRIES = [
@@ -41,33 +40,41 @@ export default function CountryCodePicker({ value, onChange }: CountryCodePicker
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
+        className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors whitespace-nowrap"
       >
         <span className="text-base leading-none">{selected.flag}</span>
-        <span className="font-semibold text-gray-800 dark:text-gray-200">{selected.code}</span>
+        <span className="font-semibold text-slate-800 dark:text-slate-200">{selected.code}</span>
         <ChevronDown
           size={12}
-          className={`text-gray-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          className={`text-slate-400 dark:text-slate-500 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-44 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50">
+        <div className="
+          absolute left-0 top-full mt-2 w-44 z-50
+          bg-white dark:bg-slate-900
+          rounded-2xl shadow-xl
+          border border-slate-200 dark:border-slate-800
+          overflow-hidden
+        ">
           {COUNTRIES.map((country) => (
             <button
               key={country.code}
               type="button"
               onClick={() => { onChange(country.code); setOpen(false); }}
               className={`
-                w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors
+                w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left
+                transition-all duration-150 ease-in-out
                 ${country.code === value
-                  ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"}
+                  ? "bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-400 font-semibold"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                }
               `}
             >
               <span className="text-base">{country.flag}</span>
               <span className="flex-1">{country.name}</span>
-              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{country.code}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">{country.code}</span>
             </button>
           ))}
         </div>

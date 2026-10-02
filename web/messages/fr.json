@@ -351,6 +351,14 @@
     "regionKiambu": "District de Kiambu",
     "regionNakuru": "District de Nakuru"
   },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "switchToLight": "Passer en mode clair",
+    "switchToDark": "Passer en mode sombre",
+    "switchToSystem": "Suivre le système"
+  },
   "authGate": {
     "title": "Rejoignez Fresheri pour continuer",
     "subtitle": "Créez un compte gratuit pour voir les lieux de retrait exacts, passer des commandes en gros et vous connecter directement avec des coopératives agricoles vérifiées.",

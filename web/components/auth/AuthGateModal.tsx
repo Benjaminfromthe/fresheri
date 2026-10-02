@@ -3,8 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations }         from "next-intl";
 import {
-  X, ShieldCheck, Package, Phone, CheckCircle2,
-  Loader2, ArrowRight, Sprout,
+  X, ShieldCheck, Package, Phone, CheckCircle2, Sprout,
 } from "lucide-react";
 import { safeTFactory, AUTH_GATE_FALLBACKS } from "@/lib/i18n-safe";
 import type { GateAction }                   from "@/lib/auth/use-auth-gate";
@@ -12,12 +11,6 @@ import SignInForm                             from "./SignInForm";
 import SignUpForm                             from "./SignUpForm";
 import GoogleSignInButton                    from "./GoogleSignInButton";
 import LanguageSwitcher                      from "@/components/LanguageSwitcher";
-
-// ─────────────────────────────────────────────────────────────
-// AuthGateModal
-// Non-intrusive modal that intercepts unauthenticated actions.
-// Shows value props + sign-in / sign-up forms inline.
-// ─────────────────────────────────────────────────────────────
 
 interface AuthGateModalProps {
   open:          boolean;
@@ -48,7 +41,6 @@ export default function AuthGateModal({
 }: AuthGateModalProps) {
   const rawT = useTranslations("authGate");
   const tc   = useTranslations("common");
-  // Safe fallback — never renders raw keys
   const t    = safeTFactory(rawT as never, AUTH_GATE_FALLBACKS);
 
   const [tab, setTab]       = useState<Tab>("signup");
@@ -60,7 +52,6 @@ export default function AuthGateModal({
   const actionKey = action ? ACTION_KEY_MAP[action] : null;
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -68,11 +59,15 @@ export default function AuthGateModal({
       aria-modal="true"
       aria-label={t("title")}
     >
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
+      <div className="
+        bg-white dark:bg-slate-900
+        w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden
+        flex flex-col md:flex-row max-h-[90vh]
+        transition-colors duration-150
+      ">
 
-        {/* ── Left: Value proposition panel ── */}
-        <div className="relative hidden md:flex flex-col justify-between bg-gradient-to-br from-green-800 via-green-700 to-emerald-600 text-white p-8 w-80 shrink-0">
-          {/* Decorative circles */}
+        {/* ── Left: value proposition panel ── */}
+        <div className="relative hidden md:flex flex-col justify-between bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-700 text-white p-8 w-80 shrink-0">
           <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
           <div className="absolute -bottom-16 -left-8 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
 
@@ -88,23 +83,19 @@ export default function AuthGateModal({
           <div className="relative z-10 space-y-5">
             {actionKey && (
               <div className="bg-white/15 rounded-2xl px-4 py-3 border border-white/20">
-                <p className="text-xs text-green-200 font-medium uppercase tracking-wide mb-1">
+                <p className="text-xs text-emerald-200 font-medium uppercase tracking-wide mb-1">
                   Why sign up?
                 </p>
-                <p className="text-sm font-semibold leading-snug">
-                  {t(actionKey)}
-                </p>
+                <p className="text-sm font-semibold leading-snug">{t(actionKey)}</p>
               </div>
             )}
-
-            {/* Value props */}
             <div className="space-y-3">
               {VALUE_PROPS.map(({ icon: Icon, key }) => (
                 <div key={key} className="flex items-start gap-3">
                   <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
                     <Icon size={13} className="text-white" />
                   </div>
-                  <p className="text-xs text-green-100 leading-relaxed">{t(key)}</p>
+                  <p className="text-xs text-emerald-100 leading-relaxed">{t(key)}</p>
                 </div>
               ))}
             </div>
@@ -112,21 +103,21 @@ export default function AuthGateModal({
 
           {/* Privacy note */}
           <div className="relative z-10 flex items-start gap-2 bg-white/10 border border-white/15 rounded-xl px-3 py-2.5">
-            <ShieldCheck size={13} className="text-green-300 shrink-0 mt-0.5" />
-            <p className="text-xs text-green-100 leading-relaxed">{t("privacy")}</p>
+            <ShieldCheck size={13} className="text-emerald-300 shrink-0 mt-0.5" />
+            <p className="text-xs text-emerald-100 leading-relaxed">{t("privacy")}</p>
           </div>
         </div>
 
-        {/* ── Right: Auth form panel ── */}
-        <div className="flex-1 flex flex-col overflow-y-auto">
+        {/* ── Right: auth form panel ── */}
+        <div className="flex-1 flex flex-col overflow-y-auto bg-white dark:bg-slate-900">
 
           {/* Header */}
           <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
             <div>
-              <h2 className="font-bold text-gray-900 text-xl leading-tight">
+              <h2 className="font-bold text-slate-900 dark:text-slate-100 text-xl leading-tight">
                 {t("title")}
               </h2>
-              <p className="text-gray-500 text-sm mt-1 max-w-xs leading-snug">
+              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 max-w-xs leading-snug">
                 {t("subtitle")}
               </p>
             </div>
@@ -135,7 +126,7 @@ export default function AuthGateModal({
               <button
                 onClick={onClose}
                 aria-label={tc("close")}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
               >
                 <X size={16} />
               </button>
@@ -144,17 +135,20 @@ export default function AuthGateModal({
 
           {/* Tab pills */}
           <div className="px-6 pb-4 shrink-0">
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
               {(["signup", "signin"] as Tab[]).map((tb) => (
                 <button
                   key={tb}
                   type="button"
                   onClick={() => switchTab(tb)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
-                    tab === tb
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
+                  className={`
+                    flex-1 py-2 rounded-lg text-sm font-semibold
+                    transition-all duration-150 ease-in-out
+                    ${tab === tb
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                    }
+                  `}
                 >
                   {tb === "signup" ? t("signUpBtn") : t("signInBtn")}
                 </button>
@@ -162,32 +156,29 @@ export default function AuthGateModal({
             </div>
           </div>
 
-          {/* Scrollable form area */}
+          {/* Scrollable form */}
           <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-4">
-            {/* Google button */}
             <GoogleSignInButton onSuccess={onAuthSuccess} />
 
             {/* Divider */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400 font-medium">or</span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">or</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
             </div>
 
-            {/* Form */}
-            {tab === "signup" ? (
-              <SignUpForm onSuccess={onAuthSuccess} />
-            ) : (
-              <SignInForm onSuccess={onAuthSuccess} />
-            )}
+            {tab === "signup"
+              ? <SignUpForm onSuccess={onAuthSuccess} />
+              : <SignInForm onSuccess={onAuthSuccess} />
+            }
 
-            {/* Switch tab link */}
-            <p className="text-sm text-center text-gray-500">
+            {/* Switch tab */}
+            <p className="text-sm text-center text-slate-500 dark:text-slate-400">
               {tab === "signup" ? t("alreadyHave") : t("noAccount")}{" "}
               <button
                 type="button"
                 onClick={() => switchTab(tab === "signup" ? "signin" : "signup")}
-                className="text-green-600 hover:text-green-800 font-semibold transition-colors"
+                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold transition-colors"
               >
                 {tab === "signup" ? t("signInBtn") : t("signUpBtn")}
               </button>

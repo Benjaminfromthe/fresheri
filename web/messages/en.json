@@ -351,6 +351,14 @@
     "regionKiambu": "Kiambu District",
     "regionNakuru": "Nakuru District"
   },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "switchToSystem": "Follow system preference"
+  },
   "authGate": {
     "title": "Join Fresheri to continue",
     "subtitle": "Create a free account to view exact pickup locations, place bulk orders, and connect directly with verified farmer cooperatives.",

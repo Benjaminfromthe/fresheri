@@ -8,7 +8,8 @@ interface GoogleSignInButtonProps {
   onSuccess: () => void;
 }
 
-// Google "G" SVG logo
+// Google "G" multi-color SVG logo — intentionally uses brand hex values,
+// not Tailwind tokens, as these are Google's mandated brand colours.
 function GoogleLogo() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -20,7 +21,6 @@ function GoogleLogo() {
   );
 }
 
-// Inner button — only rendered when GoogleOAuthProvider is available
 function GoogleLoginButton({ onSuccess }: GoogleSignInButtonProps) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { useGoogleLogin } = require("@react-oauth/google");
@@ -53,20 +53,34 @@ function GoogleLoginButton({ onSuccess }: GoogleSignInButtonProps) {
         type="button"
         onClick={() => { setError(null); login(); }}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-60"
+        className="
+          w-full flex items-center justify-center gap-3
+          border border-slate-300 dark:border-slate-700
+          bg-white dark:bg-slate-800
+          hover:bg-slate-50 dark:hover:bg-slate-700/60
+          hover:border-slate-400 dark:hover:border-slate-600
+          text-slate-700 dark:text-slate-300
+          font-semibold py-2.5 rounded-xl
+          transition-all duration-200 active:scale-[0.98]
+          disabled:opacity-60 disabled:cursor-not-allowed
+          focus-visible:outline-none focus-visible:ring-2
+          focus-visible:ring-emerald-500 focus-visible:ring-offset-2
+          focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900
+        "
       >
-        {loading ? <Loader2 size={18} className="animate-spin text-gray-400" /> : <GoogleLogo />}
+        {loading
+          ? <Loader2 size={18} className="animate-spin text-slate-400" />
+          : <GoogleLogo />
+        }
         {loading ? "Signing in…" : "Continue with Google"}
       </button>
-      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      {error && <p className="text-xs text-red-500 dark:text-red-400 text-center">{error}</p>}
     </div>
   );
 }
 
 export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
-  // Only render when client ID is configured — prevents any crash when not set
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   if (!clientId) return null;
-
   return <GoogleLoginButton onSuccess={onSuccess} />;
 }

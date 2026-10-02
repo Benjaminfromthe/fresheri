@@ -351,6 +351,14 @@
     "regionKiambu": "Akarere ka Kiambu",
     "regionNakuru": "Akarere ka Nakuru"
   },
+  "theme": {
+    "light": "Urumuri",
+    "dark": "Umwizero",
+    "system": "Sisitemu",
+    "switchToLight": "Hindura kuri urumuri",
+    "switchToDark": "Hindura kuri umwizero",
+    "switchToSystem": "Kurikira sisitemu"
+  },
   "authGate": {
     "title": "Injira Fresheri ukomeze",
     "subtitle": "Fungura konti ya ubuntu kugira ngo ubone aho guterura neza, utange amatumba mu bwinshi, kandi uhuze neza n'amakoperative y'abahinzi yemejwe.",

@@ -1,98 +1,177 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
-   Fresheri Design Tokens — Semantic Color System
-   All components reference these tokens via Tailwind dark: variants.
-   CSS variables are used for values that can't be expressed as
-   static Tailwind classes (e.g. the animated gradient backgrounds).
+   CRITICAL — Tailwind v4 defaults dark: to prefers-color-scheme.
+   This override makes dark: respond to the .dark CLASS on <html>,
+   which is what next-themes sets via attribute="class".
+═══════════════════════════════════════════════════════════════ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ═══════════════════════════════════════════════════════════════
+   Fresheri Design Tokens
+   Semantic CSS variables for :root (light) and .dark.
+   Exposed to Tailwind utilities via @theme inline so components
+   can write bg-surface, text-muted, border-border, etc.
 ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Canvas */
-  --bg-canvas:        #f8fafc;   /* slate-50 — light page background */
-  --bg-surface:       #ffffff;   /* white — cards, sidebars */
-  --bg-elevated:      #f1f5f9;   /* slate-100 — inset surfaces */
+  /* ── Canvas layers ── */
+  --canvas:           #f8fafc;   /* page background    — slate-50  */
+  --surface:          #ffffff;   /* cards, panels      — white     */
+  --surface-hover:    #f1f5f9;   /* hovered surface    — slate-100 */
+  --elevated:         #f1f5f9;   /* inset / elevated   — slate-100 */
 
-  /* Borders */
-  --border-default:   #e2e8f0;   /* slate-200 */
-  --border-subtle:    #f1f5f9;   /* slate-100 */
+  /* ── Borders ── */
+  --border:           #e2e8f0;   /* default border     — slate-200 */
+  --border-subtle:    #f1f5f9;   /* hairline border    — slate-100 */
 
-  /* Text */
-  --text-primary:     #0f172a;   /* slate-900 */
-  --text-secondary:   #475569;   /* slate-600 */
-  --text-muted:       #94a3b8;   /* slate-400 */
+  /* ── Text ── */
+  --text-primary:     #0f172a;   /* headings / body    — slate-900 */
+  --text-secondary:   #475569;   /* secondary          — slate-600 */
+  --text-muted:       #94a3b8;   /* captions / hints   — slate-400 */
 
-  /* Fresheri green banner — vibrant in light mode */
-  --header-from:      #059669;   /* emerald-600 */
+  /* ── Brand ── */
+  --brand:            #059669;   /* emerald-600 */
+  --brand-dark:       #047857;   /* emerald-700 */
+  --brand-fg:         #ffffff;   /* text on brand bg   */
+
+  /* ── Hero/banner gradient ── */
+  --header-from:      #059669;   /* emerald-600 — vibrant in light */
   --header-to:        #047857;   /* emerald-700 */
 
-  /* Transitions */
-  --transition-theme: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  /* ── Input ── */
+  --input-bg:         #ffffff;
+  --input-border:     #cbd5e1;   /* slate-300 */
+  --input-text:       #0f172a;
+  --input-placeholder:#94a3b8;
+
+  /* ── Badge surfaces ── */
+  --badge-green-bg:   #f0fdf4;   /* green-50  */
+  --badge-green-text: #15803d;   /* green-700 */
+  --badge-blue-bg:    #eff6ff;   /* blue-50   */
+  --badge-blue-text:  #1d4ed8;   /* blue-700  */
+  --badge-amber-bg:   #fffbeb;   /* amber-50  */
+  --badge-amber-text: #b45309;   /* amber-700 */
+
+  /* ── Status ── */
+  --success:          #16a34a;
+  --warning:          #d97706;
+  --danger:           #dc2626;
+
+  /* ── Transitions ── */
+  --transition-theme: background-color 0.15s ease-in-out,
+                      color 0.15s ease-in-out,
+                      border-color 0.15s ease-in-out;
 }
 
 .dark {
-  /* Canvas — comfortable charcoal, NOT pure black */
-  --bg-canvas:        #020617;   /* slate-950 */
-  --bg-surface:       #0f172a;   /* slate-900 */
-  --bg-elevated:      #1e293b;   /* slate-800 */
+  /* ── Canvas layers ── */
+  --canvas:           #020617;   /* slate-950 */
+  --surface:          #0f172a;   /* slate-900 */
+  --surface-hover:    #1e293b;   /* slate-800 */
+  --elevated:         #1e293b;   /* slate-800 */
 
-  /* Borders */
-  --border-default:   #1e293b;   /* slate-800 */
+  /* ── Borders ── */
+  --border:           #1e293b;   /* slate-800 */
   --border-subtle:    #0f172a;   /* slate-900 */
 
-  /* Text — off-white for eye comfort, WCAG AA 4.5:1 on dark canvas */
-  --text-primary:     #f1f5f9;   /* slate-100 */
+  /* ── Text ── */
+  --text-primary:     #f1f5f9;   /* slate-100  — WCAG AA 4.5:1 on slate-950 */
   --text-secondary:   #94a3b8;   /* slate-400 */
   --text-muted:       #475569;   /* slate-600 */
 
-  /* Header — desaturated deep green; prevents screen blindness in dark */
+  /* ── Brand ── */
+  --brand:            #34d399;   /* emerald-400 — brighter for dark bg */
+  --brand-dark:       #10b981;   /* emerald-500 */
+  --brand-fg:         #022c22;   /* very dark green text on brand bg */
+
+  /* ── Hero/banner gradient ── */
   --header-from:      #064e3b;   /* emerald-900 */
   --header-to:        #065f46;   /* emerald-800 */
+
+  /* ── Input ── */
+  --input-bg:         #1e293b;   /* slate-800 */
+  --input-border:     #334155;   /* slate-700 */
+  --input-text:       #f1f5f9;
+  --input-placeholder:#64748b;   /* slate-500 */
+
+  /* ── Badge surfaces ── */
+  --badge-green-bg:   #052e16;   /* green-950  */
+  --badge-green-text: #4ade80;   /* green-400  */
+  --badge-blue-bg:    #172554;   /* blue-950   */
+  --badge-blue-text:  #60a5fa;   /* blue-400   */
+  --badge-amber-bg:   #451a03;   /* amber-950  */
+  --badge-amber-text: #fbbf24;   /* amber-400  */
+
+  /* ── Status ── */
+  --success:          #4ade80;
+  --warning:          #fbbf24;
+  --danger:           #f87171;
 }
 
-/* ── Font stack ─────────────────────────────────────────── */
+/* ── Expose tokens to Tailwind as utilities ─────────────────
+   bg-canvas, bg-surface, bg-elevated, bg-surface-hover
+   text-primary, text-secondary, text-muted
+   border-border, border-border-subtle
+   bg-input, border-input
+═══════════════════════════════════════════════════════════ */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-canvas:        var(--canvas);
+  --color-surface:       var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-elevated:      var(--elevated);
+  --color-border:        var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-primary:       var(--text-primary);
+  --color-secondary:     var(--text-secondary);
+  --color-muted:         var(--text-muted);
+  --color-brand:         var(--brand);
+  --color-brand-fg:      var(--brand-fg);
+  --color-input-bg:      var(--input-bg);
+  --color-input-border:  var(--input-border);
 }
 
 /* ── Color scheme hint — prevents OS-level flash ────────── */
-html {
-  color-scheme: light;
-}
-html.dark {
-  color-scheme: dark;
-}
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
 
 /* ── Base body ───────────────────────────────────────────── */
 body {
-  background-color: var(--bg-canvas);
+  background-color: var(--canvas);
   color:            var(--text-primary);
   font-family:      Arial, Helvetica, sans-serif;
   transition:       var(--transition-theme);
 }
 
-/* ── Scrollbar — themed ──────────────────────────────────── */
-::-webkit-scrollbar        { width: 6px; height: 6px; }
-::-webkit-scrollbar-track  { background: var(--bg-surface); }
-::-webkit-scrollbar-thumb  { background: var(--border-default); border-radius: 3px; }
-
-/* ── Fresheri Header gradient — CSS vars flip automatically ─
-   Light: emerald-600 → emerald-700  |  Dark: emerald-900 → emerald-800 */
-.fresheri-header {
-  background: linear-gradient(to right, var(--header-from), var(--header-to));
-  transition: background 0.2s ease-in-out;
+/* ── Controlled transition — only fires after mount ──────
+   next-themes removes the no-transition class on first render.
+   Combined with disableTransitionOnChange this ensures zero
+   flash and no mid-animation jank on reload.                */
+.theme-ready * {
+  transition: background-color 0.15s ease-in-out,
+              color 0.15s ease-in-out,
+              border-color 0.15s ease-in-out !important;
 }
 
-/* ── Shared transition utility — applied to every themed layer */
-.theme-transition {
-  transition: background-color 0.2s ease-in-out,
-              color 0.2s ease-in-out,
-              border-color 0.2s ease-in-out,
-              box-shadow 0.2s ease-in-out;
+/* ── Respect prefers-reduced-motion ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .theme-ready * { transition: none !important; }
+  body { transition: none !important; }
+}
+
+/* ── Scrollbar — themed ──────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--surface); }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+
+/* ── Fresheri Header gradient — CSS vars flip automatically ─ */
+.fresheri-header {
+  background: linear-gradient(to right, var(--header-from), var(--header-to));
+  transition: background 0.15s ease-in-out;
 }
 
 /* ── Prevent theme flash on initial load ─────────────────── */
-.no-transition * {
-  transition: none !important;
-}
+.no-transition * { transition: none !important; }
