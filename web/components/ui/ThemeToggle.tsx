@@ -3,35 +3,21 @@
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
-
-type Mode = "light" | "dark" | "system";
+import { Sun, Moon } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────
-// ThemeToggle — 3-state cycle: light → dark → system → light
-//
-// • Lazy-mounted to avoid SSR hydration mismatch.
-// • Placeholder preserves header layout before mount.
-// • aria-label and title translated via next-intl.
-// • focus-visible ring for keyboard accessibility.
+// ThemeToggle — simple light ↔ dark toggle.
+// Lazy-mounted to avoid SSR hydration mismatch.
+// aria-label translated via next-intl. focus-visible ring.
 // ─────────────────────────────────────────────────────────────
-
-const CYCLE: Mode[] = ["light", "dark", "system"];
-
-const ICON: Record<Mode, React.ReactNode> = {
-  light:  <Sun    size={16} aria-hidden="true" />,
-  dark:   <Moon   size={16} aria-hidden="true" />,
-  system: <Monitor size={15} aria-hidden="true" />,
-};
 
 export default function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const t = useTranslations("theme");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  // Same-size placeholder so header layout doesn't shift before mount
   if (!mounted) {
     return (
       <div
@@ -41,26 +27,13 @@ export default function ThemeToggle() {
     );
   }
 
-  const current = (theme as Mode | undefined) ?? "system";
-  const next    = CYCLE[(CYCLE.indexOf(current) + 1) % CYCLE.length];
-
-  const labels: Record<Mode, string> = {
-    light:  t("switchToDark"),
-    dark:   t("switchToSystem"),
-    system: t("switchToLight"),
-  };
-
-  const modeLabel: Record<Mode, string> = {
-    light:  t("light"),
-    dark:   t("dark"),
-    system: t("system"),
-  };
+  const isDark = resolvedTheme === "dark";
 
   return (
     <button
-      onClick={() => setTheme(next)}
-      aria-label={labels[current]}
-      title={`${modeLabel[current]} — ${labels[current]}`}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? t("switchToLight") : t("switchToDark")}
+      title={isDark ? t("switchToLight") : t("switchToDark")}
       className="
         w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer
         border border-slate-200 dark:border-slate-700
@@ -74,7 +47,10 @@ export default function ThemeToggle() {
         transition-all duration-200 ease-in-out
       "
     >
-      {ICON[current]}
+      {isDark
+        ? <Sun  size={16} className="text-amber-400" aria-hidden="true" />
+        : <Moon size={16} className="text-slate-500" aria-hidden="true" />
+      }
     </button>
   );
 }
