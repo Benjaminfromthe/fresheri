@@ -97,17 +97,17 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
               className="peer sr-only"
               {...register("rememberMe")}
             />
-            <div className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 peer-checked:bg-green-600 peer-checked:border-green-600 transition-all" />
+            <div className="w-4 h-4 rounded border-2 border-slate-300 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:border-emerald-600 transition-all" />
             <svg className="absolute inset-0 w-4 h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"
               viewBox="0 0 16 16" fill="none">
               <path d="M3.5 8L6.5 11L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">
+          <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">
             {t("rememberMe")}
           </span>
         </label>
-        <button type="button" className="text-sm text-green-600 hover:text-green-800 dark:text-green-400 font-medium transition-colors">
+        <button type="button" className="text-sm text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors">
           {t("forgotPassword")}
         </button>
       </div>
@@ -116,7 +116,7 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-[0.98] disabled:opacity-70 text-white font-semibold py-3.5 rounded-2xl transition-all duration-200 shadow-lg shadow-green-600/20 hover:shadow-green-600/30 mt-2"
+        className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-70 text-white font-semibold py-3.5 rounded-2xl transition-all duration-200 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 mt-2"
       >
         {isSubmitting ? (
           <><Loader2 size={17} className="animate-spin" /><span>{t("signingIn")}</span></>

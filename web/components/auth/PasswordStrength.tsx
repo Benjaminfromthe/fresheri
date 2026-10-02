@@ -8,10 +8,10 @@ interface PasswordStrengthProps {
 }
 
 const STRENGTH_CONFIG = [
-  { min: 1, labelKey: "passwordStrengthWeak",   bar: "bg-red-400",    text: "text-red-500"    },
-  { min: 2, labelKey: "passwordStrengthFair",   bar: "bg-amber-400",  text: "text-amber-600"  },
-  { min: 3, labelKey: "passwordStrengthGood",   bar: "bg-blue-400",   text: "text-blue-600"   },
-  { min: 4, labelKey: "passwordStrengthStrong", bar: "bg-green-500",  text: "text-green-600"  },
+  { min: 1, labelKey: "passwordStrengthWeak",   bar: "bg-red-400",    text: "text-red-500 dark:text-red-400"    },
+  { min: 2, labelKey: "passwordStrengthFair",   bar: "bg-amber-400",  text: "text-amber-600 dark:text-amber-400" },
+  { min: 3, labelKey: "passwordStrengthGood",   bar: "bg-blue-400",   text: "text-blue-600 dark:text-blue-400"   },
+  { min: 4, labelKey: "passwordStrengthStrong", bar: "bg-emerald-500",text: "text-emerald-600 dark:text-emerald-400" },
 ] as const;
 
 export default function PasswordStrength({ password }: PasswordStrengthProps) {
@@ -30,7 +30,7 @@ export default function PasswordStrength({ password }: PasswordStrengthProps) {
           <div
             key={seg}
             className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-              seg <= score ? config.bar : "bg-gray-200"
+              seg <= score ? config.bar : "bg-slate-200 dark:bg-slate-700"
             }`}
           />
         ))}
@@ -40,7 +40,9 @@ export default function PasswordStrength({ password }: PasswordStrengthProps) {
         <span className={`text-xs font-medium ${config.text}`}>
           {t(config.labelKey)}
         </span>
-        <span className="text-xs text-gray-400">{t("passwordStrengthHint")}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">
+          {t("passwordStrengthHint")}
+        </span>
       </div>
     </div>
   );

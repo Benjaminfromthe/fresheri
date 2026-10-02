@@ -46,7 +46,7 @@ function InlinePasswordStrength({ password }: { password: string }) {
           <div
             key={seg}
             className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-              seg <= score ? STRENGTH_COLORS[score] : "bg-gray-200 dark:bg-gray-700"
+              seg <= score ? STRENGTH_COLORS[score] : "bg-slate-200 dark:bg-slate-700"
             }`}
           />
         ))}
@@ -186,7 +186,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
 
       {/* Role selector */}
       <RoleToggle value={role} onChange={handleRoleChange} />
-      <div className="border-t border-gray-100 dark:border-gray-800" />
+      <div className="border-t border-slate-100 dark:border-slate-800" />
 
       {/* Error banners */}
       {hasErrors && (
@@ -259,18 +259,18 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
       </div>
 
       {/* Terms */}
-      <p className="text-xs text-gray-400 dark:text-gray-500 text-center leading-relaxed">
+      <p className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
         {t("termsNotice")}{" "}
-        <button type="button" className="text-green-600 hover:underline font-medium">{t("termsLink")}</button>{" "}
+        <button type="button" className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium">{t("termsLink")}</button>{" "}
         {t("and")}{" "}
-        <button type="button" className="text-green-600 hover:underline font-medium">{t("privacyLink")}</button>.
+        <button type="button" className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium">{t("privacyLink")}</button>.
       </p>
 
       {/* Submit */}
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-[0.98] disabled:opacity-70 text-white font-semibold py-3.5 rounded-2xl transition-all duration-200 shadow-lg shadow-green-600/20 hover:shadow-green-600/30"
+        className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-70 text-white font-semibold py-3.5 rounded-2xl transition-all duration-200 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30"
       >
         {isSubmitting
           ? <><Loader2 size={17} className="animate-spin" /><span>{t("signingUp")}</span></>
