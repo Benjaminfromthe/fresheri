@@ -184,7 +184,7 @@ export default function MarketplacePage() {
                   placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white dark:bg-slate-800 transition-all duration-200 ease-in-out"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border-0 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/50 bg-white dark:bg-slate-800 transition-all duration-200 ease-in-out"
                 />
               </div>
 
@@ -192,7 +192,18 @@ export default function MarketplacePage() {
               <button
                 onClick={handleOpenCheckout}
                 disabled={cartCount === 0}
-                className="relative flex items-center gap-2 bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors border border-white/30"
+                className="
+                  relative flex items-center gap-2
+                  bg-white text-emerald-700
+                  hover:bg-emerald-50
+                  dark:bg-white/15 dark:text-white dark:hover:bg-white/25
+                  disabled:opacity-50
+                  text-sm font-semibold px-4 py-2 rounded-xl
+                  border border-emerald-200 dark:border-white/30
+                  transition-all duration-200
+                  focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-emerald-500 focus-visible:ring-offset-1
+                "
                 aria-label={`Cart — ${cartCount} items`}
               >
                 <ShoppingCart size={16} />
@@ -225,13 +236,13 @@ export default function MarketplacePage() {
               <div
                 key={label}
                 className="
-                  bg-white/20 dark:bg-slate-900/60
+                  bg-white/15 dark:bg-slate-900/60
                   backdrop-blur-sm rounded-xl px-4 py-2
-                  border border-white/30 dark:border-slate-700
+                  border border-white/25 dark:border-slate-700
                   transition-all duration-200 ease-in-out
                 "
               >
-                <p className="text-lg font-bold text-white dark:text-emerald-400">{value}</p>
+                <p className="text-lg font-bold text-white">{value}</p>
                 <p className="text-emerald-100 dark:text-slate-400 text-xs">{label}</p>
               </div>
             ))}

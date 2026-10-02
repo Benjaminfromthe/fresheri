@@ -146,7 +146,7 @@
     "listingsAvailable": "{count} annonce(s) disponible(s)",
     "noListingsTitle": "Aucune annonce ne correspond à vos filtres",
     "noListingsClear": "Effacer tous les filtres",
-    "searchPlaceholder": "Chercher un produit, coopérative, région…",
+    "searchPlaceholder": "Chercher un produit ou coopérative…",
     "harvestedOn": "Récolté le {date}",
     "remaining": "{qty} disponible",
     "addToOrderPickup": "Ajouter · Retrait",
