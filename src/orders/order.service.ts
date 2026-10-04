@@ -123,20 +123,20 @@ export async function placeOrder(
     // SELECT FOR UPDATE — row lock to prevent double-selling
     const listings = await tx.$queryRaw<Array<{
       id: string;
-      seller_id: string;
-      produce_name: string;
+      sellerId: string;
+      produceName: string;
       variety: string | null;
-      available_quantity: string;
-      unit_price: string;
+      availableQuantity: string;
+      unitPrice: string;
       unit: string;
-      farm_location: string;
+      farmLocation: string;
       status: string;
       currency: string;
-      delivery_options: DeliveryOption[];
+      deliveryOptions: DeliveryOption[];
     }>>`
-      SELECT id, seller_id, produce_name, variety,
-             available_quantity, unit_price, unit,
-             farm_location, status, currency, delivery_options
+      SELECT id, "sellerId", "produceName", variety,
+             "availableQuantity", "unitPrice", unit,
+             "farmLocation", status, currency, "deliveryOptions"
       FROM "ProduceListing"
       WHERE id = ${listingId}
         AND status IN ('ACTIVE', 'PARTIALLY_SOLD')
@@ -146,17 +146,17 @@ export async function placeOrder(
     if (listings.length === 0) throw new ListingNotFoundError(listingId);
 
     const listing      = listings[0];
-    const availableQty = parseFloat(listing.available_quantity);
-    const unitPrice    = parseFloat(listing.unit_price);
+    const availableQty = parseFloat(listing.availableQuantity);
+    const unitPrice    = parseFloat(listing.unitPrice);
     const currency     = listing.currency;
 
     if (quantityKg > availableQty) {
       throw new InsufficientInventoryError(availableQty, quantityKg);
     }
 
-    if (!listing.delivery_options.includes(deliveryOption)) {
+    if (!listing.deliveryOptions.includes(deliveryOption)) {
       throw new InvalidDeliveryOptionError(
-        `Listing does not support ${deliveryOption}. Available: ${listing.delivery_options.join(", ")}.`
+        `Listing does not support ${deliveryOption}. Available: ${listing.deliveryOptions.join(", ")}.`
       );
     }
 
@@ -199,7 +199,7 @@ export async function placeOrder(
       data: {
         orderId:           order.id,
         listingId,
-        produceName:       listing.produce_name,
+        produceName:       listing.produceName,
         variety:           listing.variety ?? null,
         unit:              listing.unit as "KG" | "TON",
         quantityOrdered:   quantityKg,
@@ -207,7 +207,7 @@ export async function placeOrder(
         lineTotal:         subtotalAmount,
         quantityDelivered: 0,
         isFulfilled:       false,
-        farmLocation:      listing.farm_location,
+        farmLocation:      listing.farmLocation,
       },
       select: { id: true },
     });
@@ -241,7 +241,7 @@ export async function placeOrder(
   // ── SMS notifications (post-commit, non-blocking) ─────────
 
   const seller = await db.user.findUnique({
-    where:  { id: result.listing.seller_id },
+    where:  { id: result.listing.sellerId },
     select: { phone: true },
   });
 
@@ -249,7 +249,7 @@ export async function placeOrder(
     sms.notifyBuyer({
       phone:       buyer.phone,
       orderNumber: result.order.orderNumber,
-      produceName: result.listing.produce_name,
+      produceName: result.listing.produceName,
       quantityKg,
       totalAmount: result.totalAmount,
       currency:    result.currency,
@@ -257,7 +257,7 @@ export async function placeOrder(
     seller ? sms.notifyFarmer({
       phone:       seller.phone,
       orderNumber: result.order.orderNumber,
-      produceName: result.listing.produce_name,
+      produceName: result.listing.produceName,
       quantityKg,
       totalAmount: result.subtotalAmount,
       currency:    result.currency,
