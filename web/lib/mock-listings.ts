@@ -20,7 +20,7 @@ const ORGANIC_COOP     = "Verified Organic Cooperative";
 
 export const MOCK_LISTINGS: ProduceListing[] = [
   {
-    id: "1",
+    id: "00000000-0000-0000-0001-000000000001",
     produceName:       "Tomatoes",
     variety:           "Sukari F1",
     categoryName:      "Vegetables",
@@ -42,7 +42,7 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     status:            "PARTIALLY_SOLD",
   },
   {
-    id: "2",
+    id: "00000000-0000-0000-0001-000000000002",
     produceName:       "Irish Potatoes",
     variety:           "Kinigi",
     categoryName:      "Tubers",
@@ -64,7 +64,7 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     status:            "ACTIVE",
   },
   {
-    id: "3",
+    id: "00000000-0000-0000-0001-000000000003",
     produceName:       "Cabbage",
     variety:           "Gloria F1",
     categoryName:      "Vegetables",
@@ -86,7 +86,7 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     status:            "ACTIVE",
   },
   {
-    id: "4",
+    id: "00000000-0000-0000-0001-000000000004",
     produceName:       "Peppers",
     variety:           "California Wonder",
     categoryName:      "Vegetables",
@@ -108,7 +108,7 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     status:            "ACTIVE",
   },
   {
-    id: "5",
+    id: "00000000-0000-0000-0001-000000000005",
     produceName:       "Green Bananas",
     variety:           null,
     categoryName:      "Fruits",
@@ -128,9 +128,8 @@ export const MOCK_LISTINGS: ProduceListing[] = [
     imageUrls:         ["/images/assets/products/green-bananas.jpg"],
     isOrganic:         false,
     status:            "ACTIVE",
-  },
-  {
-    id: "6",
+  },  {
+    id: "00000000-0000-0000-0001-000000000006",
     produceName:       "African Eggplant",
     variety:           null,
     categoryName:      "Vegetables",
