@@ -10,6 +10,7 @@ import Footer           from "@/components/layout/Footer";
 import FilterSidebar    from "@/components/marketplace/FilterSidebar";
 import ProduceCard      from "@/components/marketplace/ProduceCard";
 import CheckoutModal    from "@/components/marketplace/CheckoutModal";
+import CartDrawer       from "@/components/marketplace/CartDrawer";
 import AuthGateModal    from "@/components/auth/AuthGateModal";
 import { toast }        from "@/components/ui/Toaster";
 
@@ -258,11 +259,11 @@ export default function MarketplacePage() {
           <GuestBanner onGate={() => gate("placeOrder", undefined, () => {})} />
         )}
 
-        <div className="flex gap-6">
+        <div className="flex gap-5">
 
-          {/* Desktop sidebar */}
+          {/* Desktop filter sidebar */}
           <div className="hidden lg:block sticky top-20 self-start shrink-0">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 w-64 transition-all duration-200 ease-in-out">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 w-56 transition-all duration-200 ease-in-out">
               <FilterSidebar
                 filters={filters}
                 onChange={setFilters}
@@ -271,38 +272,28 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Grid */}
+          {/* Product grid */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center mb-5">
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{filteredListings.length}</span>{" "}
                 {t("listingsAvailable", { count: filteredListings.length })}
               </p>
-              {cartCount > 0 && (
-                <button
-                  onClick={handleOpenCheckout}
-                  className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold hover:underline transition-all duration-200"
-                >
-                  <ShoppingCart size={14} />
-                  {cartCount} item{cartCount !== 1 ? "s" : ""} ·{" "}
-                  {currency} {cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </button>
-              )}
             </div>
 
             {filteredListings.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-gray-400 dark:text-slate-500 gap-3">
+              <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-500 gap-3">
                 <Sprout size={48} className="opacity-30" />
                 <p className="font-semibold text-lg">{t("noListingsTitle")}</p>
                 <button
                   onClick={() => { setFilters(DEFAULT_FILTERS); setSearch(""); }}
-                  className="text-sm text-green-600 hover:underline"
+                  className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
                 >
                   {t("noListingsClear")}
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {filteredListings.map((listing) => (
                   <ProduceCard
                     key={listing.id}
@@ -313,7 +304,42 @@ export default function MarketplacePage() {
               </div>
             )}
           </div>
+
+          {/* Live cart drawer — always visible on desktop */}
+          <CartDrawer
+            cart={cart}
+            onRemove={handleRemoveFromCart}
+            onCheckout={handleOpenCheckout}
+            currency={currency}
+          />
         </div>
+
+        {/* ── Mobile floating cart — visible below xl when cart has items ── */}
+        {cartCount > 0 && (
+          <button
+            onClick={handleOpenCheckout}
+            className="
+              xl:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30
+              flex items-center gap-3
+              bg-emerald-600 hover:bg-emerald-700 active:scale-95
+              text-white font-bold text-sm
+              px-6 py-3.5 rounded-2xl
+              shadow-2xl shadow-emerald-600/40
+              transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400
+            "
+            aria-label={`View cart — ${cartCount} items`}
+          >
+            <ShoppingCart size={17} />
+            <span>
+              {cartCount} item{cartCount !== 1 ? "s" : ""} &middot;{" "}
+              {currency} {cartTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-semibold">
+              Checkout →
+            </span>
+          </button>
+        )}
       </main>
 
       <Footer />
