@@ -33,7 +33,8 @@ const ALLOWED_ORIGINS = [
   "https://fresheri.vercel.app",
   "https://fresheri-v6kz.vercel.app",
   process.env.FRONTEND_URL,
-  "http://localhost:3001", // local web dev
+  "http://localhost:3000", // Next.js default dev port
+  "http://localhost:3001",
 ].filter(Boolean) as string[];
 
 app.use((_req: Request, res: Response, next: NextFunction) => {

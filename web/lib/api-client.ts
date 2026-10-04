@@ -56,7 +56,82 @@ async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-// ── Orders ───────────────────────────────────────────────────
+// ── My Orders ────────────────────────────────────────────────
+
+export interface MyOrderItem {
+  id:                string;
+  produceName:       string;
+  variety:           string | null;
+  unit:              string;
+  quantityOrdered:   number;
+  unitPriceAtOrder:  number;
+  lineTotal:         number;
+  quantityDelivered: number;
+  isFulfilled:       boolean;
+  farmLocation:      string;
+}
+
+export interface MyOrder {
+  id:              string;
+  orderNumber:     string;
+  status:          string;
+  paymentStatus:   string;
+  subtotalAmount:  number;
+  deliveryFee:     number;
+  totalAmount:     number;
+  currency:        string;
+  deliveryOption:  "SELF_PICKUP" | "DELIVERED";
+  deliveryAddress: string | null;
+  placedAt:        string;
+  confirmedAt:     string | null;
+  deliveredAt:     string | null;
+  orderItems:      MyOrderItem[];
+  // Only populated for SELF_PICKUP confirmed orders by the server
+  pickupContact?:  {
+    pickupLocation: string;
+    farmerContact:  string;
+    farmerName:     string;
+    note:           string;
+  } | null;
+}
+
+export interface MyOrdersResponse {
+  orders:     MyOrder[];
+  pagination: { total: number; page: number; pageSize: number; totalPages: number };
+}
+
+/**
+ * GET /orders?buyerId=…&page=…
+ * Fetches paginated list of the logged-in buyer's orders.
+ */
+export async function getMyOrders(
+  buyerId: string,
+  page = 1
+): Promise<MyOrdersResponse> {
+  const qs = new URLSearchParams({ buyerId, page: String(page) });
+  const res = await apiFetch<{ data: MyOrder[]; pagination: MyOrdersResponse["pagination"] }>(
+    `/orders?${qs}`
+  );
+  return { orders: res.data, pagination: res.pagination };
+}
+
+/**
+ * GET /orders/:id/pickup-contact?buyerId=…
+ * Fetches pickup contact for a confirmed SELF_PICKUP order.
+ * Requires the caller's JWT via Authorization header.
+ */
+export async function getPickupContact(
+  orderId: string,
+  token: string
+): Promise<{ pickupLocation: string; farmerContact: string; farmerName: string; note: string }> {
+  const res = await apiFetch<{ data: { pickupLocation: string; farmerContact: string; farmerName: string; note: string } }>(
+    `/orders/${orderId}/pickup-contact`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+}
+
+// ── Orders (existing) ────────────────────────────────────────
 
 export interface PlaceOrderPayload {
   buyerId:         string;

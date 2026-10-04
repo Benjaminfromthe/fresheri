@@ -13,11 +13,12 @@ import CheckoutModal    from "@/components/marketplace/CheckoutModal";
 import CartDrawer       from "@/components/marketplace/CartDrawer";
 import AuthGateModal    from "@/components/auth/AuthGateModal";
 import { toast }        from "@/components/ui/Toaster";
+import { useRouter }    from "@/i18n/navigation";
 
 import { MOCK_LISTINGS }         from "@/lib/mock-listings";
 import { placeOrderBatch }       from "@/lib/api-client";
 import { getStoredUser }         from "@/lib/api-client";
-import { PLACEHOLDER_BUYER_ID }  from "@/lib/constants";
+import { BASE_DELIVERY_FEE }     from "@/lib/constants";
 import { useAuthGate }           from "@/lib/auth/use-auth-gate";
 import {
   CartItem,
@@ -71,6 +72,7 @@ export default function MarketplacePage() {
   const t  = useTranslations("marketplace");
   const tc = useTranslations("common");
   const tt = useTranslations("toast");
+  const router = useRouter();
 
   // Auth gate — intercepts unauthenticated actions
   const { gateState, gate, onAuthSuccess, closeGate } = useAuthGate();
@@ -128,25 +130,32 @@ export default function MarketplacePage() {
   // ── Gated: Place order ────────────────────────────────────
   const handlePlaceOrder = useCallback(
     async (deliveryOption: DeliveryOption, deliveryAddress: string): Promise<OrderResult[]> => {
-      // At this point the user is authenticated (checkout was gated)
+      const user = getStoredUser();
+      if (!user?.userId) {
+        toast.error(tt("orderError"));
+        throw new Error("Not authenticated");
+      }
       try {
-        const user    = getStoredUser();
-        const buyerId = user?.userId ?? PLACEHOLDER_BUYER_ID;
         const results = await placeOrderBatch(
           cart.map((item) => ({
-            buyerId,
+            buyerId:         user.userId,
             listingId:       item.listing.id,
             quantityKg:      item.quantityKg,
             deliveryOption,
             deliveryAddress: deliveryAddress || undefined,
+            deliveryFee:     deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0,
           }))
         );
         setCart([]);
         toast.success(tt("orderSuccess"));
+        // Redirect to My Orders dashboard after a short delay so the
+        // success state in the modal renders first
+        setTimeout(() => router.push("/orders"), 1800);
         return results;
-      } catch {
-        toast.error(tt("orderError"));
-        throw new Error("Order failed");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : tt("orderError");
+        toast.error(msg);
+        throw err;
       }
     },
     [cart, tt]

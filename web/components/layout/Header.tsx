@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Sprout, Menu, X, User, ShoppingBag, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Sprout, Menu, X, User, ShoppingBag, ChevronDown, LogOut, Settings, Package } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import LanguageSwitcher  from "@/components/LanguageSwitcher";
 import ThemeToggle       from "@/components/ui/ThemeToggle";
@@ -167,6 +167,14 @@ export default function Header() {
                     >
                       <ShoppingBag size={15} className="text-slate-400 dark:text-slate-500" />
                       {t("marketplace")}
+                    </Link>
+                    <Link
+                      href="/orders"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200"
+                    >
+                      <Package size={15} className="text-slate-400 dark:text-slate-500" />
+                      My Orders
                     </Link>
                     <Link
                       href="/auth"
