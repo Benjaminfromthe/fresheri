@@ -56,6 +56,7 @@ enum OrderStatus {
   PENDING
   CONFIRMED
   PROCESSING
+  READY_FOR_PICKUP
   DISPATCHED
   DELIVERED
   CANCELLED
@@ -325,10 +326,14 @@ model Order {
   totalAmount     Decimal       @db.Decimal(12, 2)
   currency        String        @default("KES")
 
-  // Delivery info (captured at order time)
+  // Fulfilment tracking
   deliveryOption  DeliveryOption
   deliveryAddress String?
   deliveryNotes   String?
+
+  // Self-pickup verification code — 6-digit, generated at order creation
+  // ONLY disclosed to the buyer on SELF_PICKUP orders, never publicly
+  pickupCode      String?       @unique
 
   // Timestamps
   placedAt        DateTime      @default(now())

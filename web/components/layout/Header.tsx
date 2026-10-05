@@ -176,6 +176,16 @@ export default function Header() {
                       <Package size={15} className="text-slate-400 dark:text-slate-500" />
                       My Orders
                     </Link>
+                    {user && ["FARMER","COOPERATIVE"].includes(user.role) && (
+                      <Link
+                        href="/dashboard/farmer"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-200"
+                      >
+                        <Sprout size={15} className="text-emerald-500" />
+                        Farmer Dashboard
+                      </Link>
+                    )}
                     <Link
                       href="/auth"
                       onClick={() => setUserMenuOpen(false)}

@@ -94,6 +94,7 @@ export interface PickupContact {
 export interface OrderResult {
   orderId: string;
   orderNumber: string;
+  pickupCode: string | null;
   subtotalAmount: number;
   deliveryFee: number;
   totalAmount: number;

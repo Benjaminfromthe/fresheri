@@ -82,11 +82,11 @@ export interface MyOrder {
   currency:        string;
   deliveryOption:  "SELF_PICKUP" | "DELIVERED";
   deliveryAddress: string | null;
+  pickupCode:      string | null;
   placedAt:        string;
   confirmedAt:     string | null;
   deliveredAt:     string | null;
   orderItems:      MyOrderItem[];
-  // Only populated for SELF_PICKUP confirmed orders by the server
   pickupContact?:  {
     pickupLocation: string;
     farmerContact:  string;
@@ -131,7 +131,86 @@ export async function getPickupContact(
   return res.data;
 }
 
-// ── Orders (existing) ────────────────────────────────────────
+/**
+ * GET /orders/:id — single buyer order with pickupCode
+ */
+export async function getOrderById(
+  orderId: string,
+  buyerId: string
+): Promise<MyOrder> {
+  const res = await apiFetch<{ data: MyOrder }>(`/orders/${orderId}?buyerId=${buyerId}`);
+  return res.data;
+}
+
+// ── Farmer orders ─────────────────────────────────────────────
+
+export interface FarmerOrderItem {
+  id:               string;
+  produceName:      string;
+  variety:          string | null;
+  unit:             string;
+  quantityOrdered:  number;
+  unitPriceAtOrder: number;
+  lineTotal:        number;
+  isFulfilled:      boolean;
+  listingId:        string;
+}
+
+export interface FarmerOrder {
+  id:              string;
+  orderNumber:     string;
+  status:          string;
+  pickupCode:      string | null;
+  deliveryOption:  "SELF_PICKUP" | "DELIVERED";
+  deliveryAddress: string | null;
+  subtotalAmount:  number;
+  deliveryFee:     number;
+  totalAmount:     number;
+  currency:        string;
+  placedAt:        string;
+  confirmedAt:     string | null;
+  updatedAt:       string;
+  buyer:           { firstName: string; lastName: string };
+  orderItems:      FarmerOrderItem[];
+}
+
+export interface FarmerOrdersResponse {
+  orders:     FarmerOrder[];
+  pagination: { total: number; page: number; pageSize: number; totalPages: number };
+}
+
+/**
+ * GET /farmer/orders?sellerId=…&page=…
+ */
+export async function getFarmerOrders(
+  sellerId: string,
+  page = 1
+): Promise<FarmerOrdersResponse> {
+  const qs = new URLSearchParams({ sellerId, page: String(page) });
+  const res = await apiFetch<{ data: FarmerOrder[]; pagination: FarmerOrdersResponse["pagination"] }>(
+    `/farmer/orders?${qs}`
+  );
+  return { orders: res.data, pagination: res.pagination };
+}
+
+/**
+ * PATCH /farmer/orders/:id/status
+ * action: "accept" | "ready" | "complete"
+ */
+export async function updateFarmerOrderStatus(
+  orderId:  string,
+  sellerId: string,
+  action:   "accept" | "ready" | "complete"
+): Promise<FarmerOrder> {
+  const res = await apiFetch<{ data: FarmerOrder }>(
+    `/farmer/orders/${orderId}/status`,
+    {
+      method: "PATCH",
+      body:   JSON.stringify({ sellerId, action }),
+    }
+  );
+  return res.data;
+}
 
 export interface PlaceOrderPayload {
   buyerId:         string;

@@ -132,33 +132,24 @@ export default function MarketplacePage() {
     async (deliveryOption: DeliveryOption, deliveryAddress: string): Promise<OrderResult[]> => {
       const user = getStoredUser();
       if (!user?.userId) {
-        toast.error(tt("orderError"));
-        throw new Error("Not authenticated");
+        throw new Error("Not authenticated. Please sign in again.");
       }
-      try {
-        const results = await placeOrderBatch(
-          cart.map((item) => ({
-            buyerId:         user.userId,
-            listingId:       item.listing.id,
-            quantityKg:      item.quantityKg,
-            deliveryOption,
-            deliveryAddress: deliveryAddress || undefined,
-            deliveryFee:     deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0,
-          }))
-        );
-        setCart([]);
-        toast.success(tt("orderSuccess"));
-        // Redirect to My Orders dashboard after a short delay so the
-        // success state in the modal renders first
-        setTimeout(() => router.push("/orders"), 1800);
-        return results;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : tt("orderError");
-        toast.error(msg);
-        throw err;
-      }
+      const results = await placeOrderBatch(
+        cart.map((item) => ({
+          buyerId:         user.userId,
+          listingId:       item.listing.id,
+          quantityKg:      item.quantityKg,
+          deliveryOption,
+          deliveryAddress: deliveryAddress || undefined,
+          deliveryFee:     deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0,
+        }))
+      );
+      setCart([]);
+      toast.success(tt("orderSuccess"));
+      setTimeout(() => router.push("/orders"), 1800);
+      return results;
     },
-    [cart, tt]
+    [cart, tt, router]
   );
 
   // ── Auth gate success → replay pending action ─────────────

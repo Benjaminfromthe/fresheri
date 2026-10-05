@@ -157,6 +157,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
   const [deliveryOption, setDelivery] = useState<DeliveryOption>(() => dominantFulfillment(cart));
   const [deliveryAddress, setAddress] = useState("");
   const [addressError, setAddrError]  = useState("");
+  const [placeError, setPlaceError]   = useState<string | null>(null);
   const [totals, setTotals]           = useState<CheckoutTotals>(() => calcTotals(cart, dominantFulfillment(cart)));
   const [loading, setLoading]         = useState(false);
   const [orderResults, setResults]    = useState<OrderResult[]>([]);
@@ -178,12 +179,18 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
 
   const handlePlaceOrder = async () => {
     setLoading(true);
+    setPlaceError(null);
     try {
       const r = await onPlaceOrder(deliveryOption, deliveryAddress);
       setResults(r);
       setStep("success");
-    } catch { /* parent shows error toast */ }
-    finally { setLoading(false); }
+    } catch (err) {
+      // Surface clear stock-out or any other API error in the modal
+      const msg = err instanceof Error ? err.message : "Failed to place order. Please try again.";
+      setPlaceError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fmt = (n: number) =>
@@ -367,6 +374,19 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
           {/* Step: Confirm */}
           {step === "confirm" && (
             <div className="space-y-4">
+
+              {/* ── Inventory / API error ── */}
+              {placeError && (
+                <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-xl px-4 py-3">
+                  <span className="text-red-500 text-base mt-0.5 shrink-0">⚠</span>
+                  <div>
+                    <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                      Could not place order
+                    </p>
+                    <p className="text-xs text-red-600 dark:text-red-500 mt-0.5">{placeError}</p>
+                  </div>
+                </div>
+              )}
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-2 text-sm transition-all duration-200">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>{t("items")}</span><span>{cart.length}</span>

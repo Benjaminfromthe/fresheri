@@ -22,6 +22,11 @@ import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/config";
 import { SmsService } from "../lib/sms";
 import { createDeliveryDispatch, getPickupContactForBuyer } from "../deliveries/dispatch.service";
 
+// ── 6-digit pickup code generator ────────────────────────────
+function generatePickupCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 // ── Input / Output types ─────────────────────────────────────
 
 export interface PlaceOrderInput {
@@ -38,6 +43,7 @@ export interface PlaceOrderInput {
 export interface PlaceOrderResult {
   orderId: string;
   orderNumber: string;
+  pickupCode: string | null;
   subtotalAmount: number;
   deliveryFee: number;
   totalAmount: number;
@@ -86,6 +92,7 @@ const ORDER_SELECT = {
   deliveryOption:  true,
   deliveryAddress: true,
   deliveryNotes:   true,
+  pickupCode:      true,
   placedAt:        true,
   confirmedAt:     true,
   deliveredAt:     true,
@@ -190,9 +197,12 @@ export async function placeOrder(
         deliveryOption,
         deliveryAddress:  deliveryAddress ?? null,
         deliveryNotes:    deliveryNotes ?? null,
+        pickupCode:       deliveryOption === DeliveryOption.SELF_PICKUP
+                            ? generatePickupCode()
+                            : null,
         confirmedAt:      new Date(),
       },
-      select: { id: true, orderNumber: true },
+      select: { id: true, orderNumber: true, pickupCode: true },
     });
 
     await tx.orderItem.create({
@@ -268,6 +278,7 @@ export async function placeOrder(
   return {
     orderId:                result.order.id,
     orderNumber:            result.order.orderNumber,
+    pickupCode:             result.order.pickupCode ?? null,
     subtotalAmount:         result.subtotalAmount,
     deliveryFee:            result.deliveryFee,
     totalAmount:            result.totalAmount,

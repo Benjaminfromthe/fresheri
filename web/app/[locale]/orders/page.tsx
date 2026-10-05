@@ -9,10 +9,9 @@ import {
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Link } from "@/i18n/navigation";
 import { getStoredUser, getMyOrders, getPickupContact } from "@/lib/api-client";
 import type { MyOrder } from "@/lib/api-client";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
 
 // ─────────────────────────────────────────────────────────────
 // Status badge
@@ -181,6 +180,12 @@ function OrderCard({ order, token }: { order: MyOrder; token: string }) {
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <StatusBadge status={order.status} />
+          <Link
+            href={`/orders/${order.id}`}
+            className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium mt-0.5"
+          >
+            Track order →
+          </Link>
           <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
             isPickup
               ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"

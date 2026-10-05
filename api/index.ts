@@ -12,11 +12,12 @@ import morgan from "morgan";
 
 import prisma               from "../src/lib/prisma";
 import { defaultSmsService } from "../src/lib/sms";
-import { createUssdRouter }   from "../src/ussd/ussd.routes";
-import { createOrderRouter }  from "../src/orders/order.routes";
-import { createListingRouter } from "../src/listings/listing.routes";
-import { createAuthRouter }   from "../src/auth/auth.routes";
-import { createSeedRouter }   from "../src/seed/seed.routes";
+import { createUssdRouter }         from "../src/ussd/ussd.routes";
+import { createOrderRouter }        from "../src/orders/order.routes";
+import { createFarmerOrderRouter }  from "../src/orders/farmer.routes";
+import { createListingRouter }      from "../src/listings/listing.routes";
+import { createAuthRouter }         from "../src/auth/auth.routes";
+import { createSeedRouter }         from "../src/seed/seed.routes";
 import { ErrorCode }           from "../src/constants/errors";
 
 // ── Bootstrap app ────────────────────────────────────────────
@@ -57,11 +58,12 @@ app.get("/health", (_req, res) => {
 
 // ── Routes — inject singletons once here ─────────────────────
 
-app.use("/ussd",     createUssdRouter(prisma));
-app.use("/orders",   createOrderRouter(prisma, defaultSmsService));
-app.use("/listings", createListingRouter(prisma));
-app.use("/auth",     createAuthRouter(prisma));
-app.use("/seed",     createSeedRouter(prisma));
+app.use("/ussd",          createUssdRouter(prisma));
+app.use("/orders",        createOrderRouter(prisma, defaultSmsService));
+app.use("/farmer/orders", createFarmerOrderRouter(prisma, defaultSmsService));
+app.use("/listings",      createListingRouter(prisma));
+app.use("/auth",          createAuthRouter(prisma));
+app.use("/seed",          createSeedRouter(prisma));
 
 // ── 404 ──────────────────────────────────────────────────────
 
