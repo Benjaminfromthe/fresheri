@@ -212,6 +212,53 @@ export async function updateFarmerOrderStatus(
   return res.data;
 }
 
+// ── Payments ─────────────────────────────────────────────────
+
+export interface InitiatePaymentPayload {
+  buyerId:         string;
+  buyerToken:      string;
+  cart:            { listingId: string; quantityKg: number; unitPrice: number; fulfillment: "SELF_PICKUP" | "DELIVERED" }[];
+  deliveryOption:  "SELF_PICKUP" | "DELIVERED";
+  deliveryAddress?: string;
+  currency:        string;
+}
+
+export interface InitiatePaymentResult {
+  txRef:        string;
+  orderId:      string;
+  allOrderIds:  string[];
+  orderNumber:  string;
+  amount:       number;
+  currency:     string;
+  pickupCode:   string | null;
+  orderResults: OrderResult[];
+}
+
+/**
+ * POST /api/payments/initiate  (Next.js internal route — no API_BASE_URL)
+ * Places orders on the Express backend, returns FLW payload.
+ */
+export async function initiatePayment(
+  payload: InitiatePaymentPayload
+): Promise<InitiatePaymentResult> {
+  const res = await fetch("/api/payments/initiate", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let message = `Payment initiation failed (${res.status})`;
+    try {
+      const body = await res.json() as { error?: string };
+      message = body.error ?? message;
+    } catch { /* non-JSON */ }
+    throw new ApiError(res.status, "PAYMENT_INITIATION_FAILED", message);
+  }
+  return res.json() as Promise<InitiatePaymentResult>;
+}
+
+// ── Orders ────────────────────────────────────────────────────
+
 export interface PlaceOrderPayload {
   buyerId:         string;
   listingId:       string;

@@ -154,5 +154,79 @@ export function createOrderController(db: PrismaClient, sms: SmsService) {
     }
   }
 
-  return { createOrder, listOrders, getOrder, getPickupContact };
+  // ── PATCH /orders/:id/payment — called by webhook only ──────
+  async function updatePaymentStatus(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const internalSecret = process.env.INTERNAL_WEBHOOK_SECRET ?? "fresheri-internal-2024";
+
+    if (req.headers["x-internal-secret"] !== internalSecret) {
+      res.status(401).json({ error: ErrorCode.UNAUTHENTICATED, message: "Unauthorized." });
+      return;
+    }
+
+    const { paymentStatus, transactionRef, transactionId, paidAmount, currency } =
+      req.body as {
+        paymentStatus?:  string;
+        transactionRef?: string;
+        transactionId?:  string;
+        paidAmount?:     number;
+        currency?:       string;
+      };
+
+    if (!paymentStatus) {
+      res.status(400).json({ error: ErrorCode.VALIDATION_ERROR, message: "paymentStatus is required." });
+      return;
+    }
+
+    try {
+      const updated = await db.order.update({
+        where:  { id },
+        data: {
+          paymentStatus: "PAID" as const,
+          updatedAt:     new Date(),
+          payments: {
+            create: {
+              amount:         paidAmount ?? 0,
+              currency:       currency ?? "RWF",
+              method:         "MOBILE_MONEY",
+              status:         "PAID" as const,
+              transactionRef: transactionRef ?? null,
+              paidAt:         new Date(),
+            },
+          },
+        },
+        select: { id: true, orderNumber: true, paymentStatus: true, buyerId: true },
+      });
+
+      // Notify farmer that payment is confirmed — non-blocking
+      db.order.findFirst({
+        where:   { id },
+        select: {
+          orderItems: {
+            select: {
+              produceName: true,
+              quantityOrdered: true,
+              listing: { select: { seller: { select: { phone: true } } } },
+            },
+          },
+        },
+      }).then((o) => {
+        if (!o?.orderItems[0]) return;
+        const item   = o.orderItems[0];
+        const phone  = item.listing.seller.phone;
+        const qty    = Number(item.quantityOrdered);
+        const name   = item.produceName;
+        sms.send([phone],
+          `Fresheri: Payment confirmed for order #${updated.orderNumber}! ` +
+          `${qty}kg ${name} — payment received. Please prepare the order.`
+        ).catch(() => undefined);
+      }).catch(() => undefined);
+
+      res.status(200).json({ message: "Payment status updated.", data: updated });
+    } catch (err) {
+      handleServiceError(err, res);
+    }
+  }
+
+  return { createOrder, listOrders, getOrder, getPickupContact, updatePaymentStatus };
 }

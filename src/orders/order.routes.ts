@@ -22,9 +22,10 @@ export function createOrderRouter(db: PrismaClient, sms: SmsService): Router {
     ctrl.getPickupContact
   );
 
-  router.post("/",    ctrl.createOrder);
-  router.get("/",     ctrl.listOrders);
-  router.get("/:id",  ctrl.getOrder);
+  router.post("/",                  ctrl.createOrder);
+  router.get("/",                   ctrl.listOrders);
+  router.get("/:id",                ctrl.getOrder);
+  router.patch("/:id/payment",      ctrl.updatePaymentStatus);
 
   return router;
 }
