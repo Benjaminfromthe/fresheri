@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
   X, Truck, Package, Trash2, ChevronRight, MapPin,
@@ -12,16 +12,20 @@ import {
 } from "@/types/marketplace";
 import { BASE_DELIVERY_FEE } from "@/lib/constants";
 import { getStoredUser }     from "@/lib/api-client";
-import FulfillmentToggle from "./FulfillmentToggle";
-import PrivacyBadge      from "./PrivacyBadge";
+import FulfillmentToggle     from "./FulfillmentToggle";
+import PrivacyBadge          from "./PrivacyBadge";
 
-// ── Flutterwave global type declaration ───────────────────────
+// ── Flutterwave global type ───────────────────────────────────
 declare global {
   interface Window {
-    FlutterwaveCheckout?: (config: Record<string, unknown>) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    FlutterwaveCheckout?: (config: Record<string, any>) => void;
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Props
+// ─────────────────────────────────────────────────────────────
 interface CheckoutModalProps {
   cart:          CartItem[];
   onClose:       () => void;
@@ -31,24 +35,19 @@ interface CheckoutModalProps {
 
 function calcTotals(cart: CartItem[], deliveryOption: DeliveryOption): CheckoutTotals {
   const currency    = cart[0]?.listing.currency ?? "RWF";
-  const subtotal    = cart.reduce((sum, item) => sum + item.quantityKg * item.listing.unitPrice, 0);
+  const subtotal    = cart.reduce((s, i) => s + i.quantityKg * i.listing.unitPrice, 0);
   const deliveryFee = deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0;
   return { subtotal, deliveryFee, total: subtotal + deliveryFee, currency };
 }
-
 function dominantFulfillment(cart: CartItem[]): DeliveryOption {
   return cart.some((i) => i.selectedFulfillment === "DELIVERED") ? "DELIVERED" : "SELF_PICKUP";
 }
 
-// ─────────────────────────────────────────────────────────────
-// Step type — added "payment" between confirm and success
-// ─────────────────────────────────────────────────────────────
 type Step = "review" | "fulfillment" | "confirm" | "payment" | "success";
 
 // ─────────────────────────────────────────────────────────────
-// Sub-components (unchanged from before)
+// PickupContactCard
 // ─────────────────────────────────────────────────────────────
-
 function PickupContactCard({ contact }: { contact: PickupContact }) {
   const t = useTranslations("orders");
   return (
@@ -95,6 +94,9 @@ function PickupContactCard({ contact }: { contact: PickupContact }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// DeliveryTrackingCard
+// ─────────────────────────────────────────────────────────────
 function DeliveryTrackingCard({ orderNumber }: { orderNumber: string }) {
   const t = useTranslations("orders");
   const stages = [
@@ -144,9 +146,8 @@ function DeliveryTrackingCard({ orderNumber }: { orderNumber: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// PaymentStep — loads FLW inline JS and opens the popup
+// PaymentStep — loads FLW v3.js and opens popup on button click
 // ─────────────────────────────────────────────────────────────
-
 interface PaymentStepProps {
   txRef:       string;
   amount:      number;
@@ -159,104 +160,97 @@ interface PaymentStepProps {
   onCancel:    () => void;
 }
 
-function PaymentStep({
-  txRef, amount, currency, orderId, orderNumber, buyerId, publicKey,
-  onSuccess, onCancel,
-}: PaymentStepProps) {
-  const [flwReady,   setFlwReady]   = useState(false);
-  const [flwError,   setFlwError]   = useState<string | null>(null);
-  const [popupOpen,  setPopupOpen]  = useState(false);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
+function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, publicKey, onSuccess, onCancel }: PaymentStepProps) {
+  const [scriptState, setScriptState] = useState<"loading" | "ready" | "error">("loading");
+  const [popupOpen,   setPopupOpen]   = useState(false);
+  const [flwError,    setFlwError]    = useState<string | null>(null);
 
-  // Load FLW inline JS once
+  // Load FLW checkout script once
   useEffect(() => {
-    if (window.FlutterwaveCheckout) { setFlwReady(true); return; }
+    if (window.FlutterwaveCheckout) { setScriptState("ready"); return; }
 
-    const script = document.createElement("script");
-    script.src   = "https://checkout.flutterwave.com/v3.js";
-    script.async = true;
-    script.onload  = () => setFlwReady(true);
-    script.onerror = () => setFlwError("Could not load payment gateway. Check your internet connection.");
-    document.head.appendChild(script);
-    scriptRef.current = script;
+    const existing = document.querySelector('script[src="https://checkout.flutterwave.com/v3.js"]') as HTMLScriptElement | null;
+    if (existing) {
+      const wait = setInterval(() => {
+        if (window.FlutterwaveCheckout) { clearInterval(wait); setScriptState("ready"); }
+      }, 150);
+      return () => clearInterval(wait);
+    }
 
-    return () => {
-      if (scriptRef.current) document.head.removeChild(scriptRef.current);
-    };
+    const s = document.createElement("script");
+    s.src   = "https://checkout.flutterwave.com/v3.js";
+    s.async = true;
+    s.onload  = () => setScriptState("ready");
+    s.onerror = () => setScriptState("error");
+    document.head.appendChild(s);
   }, []);
 
-  const openPopup = useCallback(() => {
-    if (!window.FlutterwaveCheckout) {
-      setFlwError("Payment gateway not loaded yet. Please wait a moment.");
+  // Called DIRECTLY from onClick — must stay synchronous so browser trusts the gesture
+  const handlePay = () => {
+    setFlwError(null);
+
+    if (!window.FlutterwaveCheckout || scriptState !== "ready") {
+      setFlwError("Payment gateway still loading. Please wait a moment and try again.");
+      return;
+    }
+    if (!publicKey || publicKey.length < 10) {
+      setFlwError("Payment not configured. Please refresh the page.");
       return;
     }
 
-    if (!publicKey) {
-      setFlwError("Payment gateway not configured. Please contact support.");
-      return;
-    }
+    const user  = getStoredUser();
+    const email = user?.userId
+      ? `user-${user.userId.replace(/-/g, "").slice(0, 12)}@fresheri.rw`
+      : "buyer@fresheri.rw";
+    const name  = user ? `${user.firstName} ${user.lastName}` : "Fresheri Buyer";
 
-    const user = getStoredUser();
     setPopupOpen(true);
 
     window.FlutterwaveCheckout({
       public_key:      publicKey,
       tx_ref:          txRef,
-      amount:          amount,
-      currency:        currency,
+      amount,
+      currency,
       payment_options: "mobilemoney,ussd,card",
-      customer: {
-        email:        user?.userId ? `${user.userId.slice(0,8)}@fresheri.rw` : "buyer@fresheri.rw",
-        phone_number: "+250780000001",  // real phone comes from profile (future)
-        name:         user ? `${user.firstName} ${user.lastName}` : "Fresheri Buyer",
-      },
-      meta: {
-        orderId,
-        orderNumber,
-        buyerId,
-      },
-      customizations: {
-        title:       "Fresheri Marketplace",
-        description: `Order #${orderNumber} — ${currency} ${amount.toLocaleString()}`,
+      redirect_url:    `${window.location.origin}/orders`,
+      customer:        { email, phone_number: "+250780000001", name },
+      meta:            { orderId, orderNumber, buyerId },
+      customizations:  {
+        title:       "Fresheri — Produce Marketplace",
+        description: `Order #${orderNumber}`,
         logo:        "https://fresheri.vercel.app/favicon.ico",
       },
-      callback: (response: { status: string; transaction_id?: number; tx_ref: string }) => {
+      callback: (response: { status: string; transaction_id?: number }) => {
         setPopupOpen(false);
         if (response.status === "successful" && response.transaction_id) {
           onSuccess(response.transaction_id);
-        } else if (response.status === "cancelled") {
-          onCancel();
-        } else {
+        } else if (response.status !== "cancelled") {
           setFlwError(`Payment ${response.status}. Please try again.`);
         }
       },
-      onclose: () => {
-        setPopupOpen(false);
-      },
+      onclose: () => setPopupOpen(false),
     });
-  }, [txRef, amount, currency, orderId, orderNumber, buyerId, onSuccess, onCancel]);
+  };
 
-  const fmtAmount = `${currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
+  const fmt = `${currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
 
   return (
     <div className="space-y-5 py-2">
-      {/* Amount summary */}
+      {/* Amount */}
       <div className="text-center">
-        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest mb-1">
-          Total to Pay
-        </p>
-        <p className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">{fmtAmount}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest mb-1">Total to Pay</p>
+        <p className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">{fmt}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Order #{orderNumber}</p>
       </div>
 
-      {/* Payment method icons */}
-      <div className="flex items-center justify-center gap-4">
+      {/* Payment method chips */}
+      <div className="flex items-center justify-center gap-3">
         <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
-          <Smartphone size={15} className="text-emerald-600 dark:text-emerald-400" />
+          <Smartphone size={14} className="text-emerald-600 dark:text-emerald-400" />
           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Mobile Money</span>
         </div>
         <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
-          <CreditCard size={15} className="text-blue-600 dark:text-blue-400" />
+          <CreditCard size={14} className="text-blue-600 dark:text-blue-400" />
           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Card</span>
         </div>
       </div>
@@ -266,14 +260,24 @@ function PaymentStep({
         <AlertCircle size={13} className="text-blue-500 mt-0.5 shrink-0" />
         <div>
           <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">Test Mode Active</p>
-          <p className="text-xs text-blue-600 dark:text-blue-500 mt-0.5">
-            Use test card <strong>4187427415564246</strong>, exp 09/32, CVV 828.
-            For MoMo: use any MTN Rwanda number and pin <strong>1234</strong>.
+          <p className="text-xs text-blue-600 dark:text-blue-500 mt-0.5 leading-relaxed">
+            Card: <strong>4187427415564246</strong> · exp 09/32 · CVV 828<br />
+            MoMo: any MTN Rwanda number · pin <strong>1234</strong>
           </p>
         </div>
       </div>
 
-      {/* Error */}
+      {/* Script loading indicator */}
+      {scriptState === "loading" && (
+        <p className="flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+          <Loader2 size={12} className="animate-spin" /> Loading secure payment gateway…
+        </p>
+      )}
+      {scriptState === "error" && (
+        <p className="text-xs text-red-500 text-center">Could not load payment gateway. Check your connection.</p>
+      )}
+
+      {/* Error banner */}
       {flwError && (
         <div className="flex items-start gap-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-xl px-4 py-3">
           <AlertCircle size={13} className="text-red-500 mt-0.5 shrink-0" />
@@ -281,28 +285,25 @@ function PaymentStep({
         </div>
       )}
 
-      {/* CTA */}
+      {/* Pay button */}
       <button
-        onClick={openPopup}
-        disabled={!flwReady || popupOpen}
+        onClick={handlePay}
+        disabled={scriptState !== "ready" || popupOpen}
         className="
           w-full flex items-center justify-center gap-2.5
-          py-4 rounded-2xl font-bold text-base
+          py-4 rounded-2xl font-bold text-base text-white
           bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98]
-          text-white
           disabled:opacity-50 disabled:cursor-not-allowed
           transition-all duration-200
-          focus-visible:outline-none focus-visible:ring-2
-          focus-visible:ring-emerald-500 focus-visible:ring-offset-2
-          focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500
         "
       >
-        {!flwReady ? (
-          <><Loader2 size={18} className="animate-spin" /> Loading payment gateway…</>
+        {scriptState === "loading" ? (
+          <><Loader2 size={18} className="animate-spin" /> Loading…</>
         ) : popupOpen ? (
           <><Loader2 size={18} className="animate-spin" /> Payment window open…</>
         ) : (
-          <><CreditCard size={18} /> Pay {fmtAmount} Now</>
+          <><CreditCard size={18} /> Pay {fmt} Now</>
         )}
       </button>
 
@@ -317,9 +318,8 @@ function PaymentStep({
 }
 
 // ─────────────────────────────────────────────────────────────
-// VerifyingPayment — shown while we call /api/payments/verify
+// Verifying overlay
 // ─────────────────────────────────────────────────────────────
-
 function VerifyingPayment() {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4">
@@ -328,9 +328,7 @@ function VerifyingPayment() {
       </div>
       <div className="text-center">
         <p className="font-bold text-slate-900 dark:text-slate-100">Confirming payment…</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-          Please wait while we verify your transaction
-        </p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Please wait</p>
       </div>
     </div>
   );
@@ -339,15 +337,12 @@ function VerifyingPayment() {
 // ─────────────────────────────────────────────────────────────
 // Main CheckoutModal
 // ─────────────────────────────────────────────────────────────
-
-export default function CheckoutModal({
-  cart, onClose, onRemoveItem, onPlaceOrder,
-}: CheckoutModalProps) {
+export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrder }: CheckoutModalProps) {
   const t  = useTranslations("orders");
   const tc = useTranslations("common");
   const tp = useTranslations("privacy");
 
-  const [step, setStep]               = useState<Step>("review");
+  const [step, setStep]             = useState<Step>("review");
   const [deliveryOption, setDelivery] = useState<DeliveryOption>(() => dominantFulfillment(cart));
   const [deliveryAddress, setAddress] = useState("");
   const [addressError, setAddrError]  = useState("");
@@ -356,76 +351,53 @@ export default function CheckoutModal({
   const [loading, setLoading]         = useState(false);
   const [verifying, setVerifying]     = useState(false);
   const [orderResults, setResults]    = useState<OrderResult[]>([]);
-
-  // Payment step data — set after /api/payments/initiate succeeds
   const [paymentData, setPaymentData] = useState<{
-    txRef:       string;
-    orderId:     string;
-    orderNumber: string;
-    amount:      number;
-    currency:    string;
-    publicKey:   string;
+    txRef: string; orderId: string; orderNumber: string;
+    amount: number; currency: string; publicKey: string;
   } | null>(null);
 
   useEffect(() => { setTotals(calcTotals(cart, deliveryOption)); }, [cart, deliveryOption]);
 
-  const availableOptions: DeliveryOption[] = Array.from(
-    new Set(cart.flatMap((i) => i.listing.deliveryOptions))
-  );
+  const availableOptions: DeliveryOption[] = Array.from(new Set(cart.flatMap((i) => i.listing.deliveryOptions)));
 
   const validateAndNext = () => {
     if (deliveryOption === "DELIVERED" && !deliveryAddress.trim()) {
-      setAddrError(t("deliveryAddressRequired"));
-      return;
+      setAddrError(t("deliveryAddressRequired")); return;
     }
-    setAddrError("");
-    setStep("confirm");
+    setAddrError(""); setStep("confirm");
   };
 
-  // ── Step: Confirm → initiate payment ─────────────────────────
+  // ── Initiate payment — place order, get txRef ─────────────
   const handleInitiatePayment = async () => {
-    setLoading(true);
-    setPlaceError(null);
-
+    setLoading(true); setPlaceError(null);
     const user = getStoredUser();
-    if (!user?.userId) {
-      setPlaceError("Not authenticated. Please sign in again.");
-      setLoading(false);
-      return;
-    }
+    if (!user?.userId) { setPlaceError("Not authenticated. Please sign in."); setLoading(false); return; }
 
     try {
       const res = await fetch("/api/payments/initiate", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          buyerId:         user.userId,
-          buyerToken:      user.token,
-          deliveryOption,
-          deliveryAddress: deliveryAddress || undefined,
-          currency:        totals.currency,
+          buyerId: user.userId, buyerToken: user.token,
+          deliveryOption, deliveryAddress: deliveryAddress || undefined,
+          currency: totals.currency,
           cart: cart.map((item) => ({
-            listingId:   item.listing.id,
-            quantityKg:  item.quantityKg,
-            unitPrice:   item.listing.unitPrice,
-            fulfillment: item.selectedFulfillment,
+            listingId: item.listing.id, quantityKg: item.quantityKg,
+            unitPrice: item.listing.unitPrice, fulfillment: item.selectedFulfillment,
           })),
         }),
       });
 
       const data = await res.json() as {
-        txRef?: string; orderId?: string; orderNumber?: string;
-        amount?: number; currency?: string; error?: string;
-        orderResults?: OrderResult[]; publicKey?: string;
+        txRef?: string; orderId?: string; orderNumber?: string; amount?: number;
+        currency?: string; publicKey?: string; orderResults?: OrderResult[]; error?: string;
       };
 
       if (!res.ok || !data.txRef) {
-        setPlaceError(data.error ?? "Failed to initiate payment. Please try again.");
-        setLoading(false);
-        return;
+        setPlaceError(data.error ?? "Failed to create order. Please try again.");
+        setLoading(false); return;
       }
 
-      // Store the results from the backend for the success screen
       if (data.orderResults) setResults(data.orderResults);
 
       setPaymentData({
@@ -436,7 +408,6 @@ export default function CheckoutModal({
         currency:    data.currency ?? totals.currency,
         publicKey:   data.publicKey ?? "",
       });
-
       setStep("payment");
     } catch (err) {
       setPlaceError(err instanceof Error ? err.message : "Network error. Please try again.");
@@ -445,22 +416,14 @@ export default function CheckoutModal({
     }
   };
 
-  // ── Payment success callback ──────────────────────────────────
-  const handlePaymentSuccess = useCallback(async (_txId: number) => {
+  // ── Payment success ───────────────────────────────────────
+  const handlePaymentSuccess = (_txId: number) => {
     setVerifying(true);
     setStep("success");
-
-    // Clear the cart — payment is done
-    try { onPlaceOrder(deliveryOption, deliveryAddress).catch(() => undefined); }
-    catch { /* we already have results from initiate */ }
-
+    // Clear the cart after payment — call silently, we already have results
+    onPlaceOrder(deliveryOption, deliveryAddress).catch(() => undefined);
     setVerifying(false);
-  }, [deliveryOption, deliveryAddress, onPlaceOrder]);
-
-  const handlePaymentCancel = useCallback(() => {
-    setStep("confirm");
-    setPaymentData(null);
-  }, []);
+  };
 
   const fmt = (n: number) =>
     `${totals.currency} ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -468,160 +431,107 @@ export default function CheckoutModal({
   const pickupContacts   = orderResults.map((r) => r.pickupContact).filter((c): c is NonNullable<typeof c> => c !== null);
   const hasDelivery      = orderResults.some((r) => r.fulfillment === "DELIVERED");
   const firstOrderNumber = orderResults[0]?.orderNumber ?? paymentData?.orderNumber ?? "";
-  const PROGRESS_STEPS: Step[] = ["review", "fulfillment", "confirm"];
-
-  const STEP_TITLE: Record<Step, string> = {
-    review:      t("reviewTitle"),
-    fulfillment: t("fulfillmentTitle"),
-    confirm:     t("confirmTitle"),
-    payment:     "Secure Payment",
-    success:     t("successTitle"),
+  const PROGRESS: Step[] = ["review", "fulfillment", "confirm"];
+  const TITLES: Record<Step, string> = {
+    review: t("reviewTitle"), fulfillment: t("fulfillmentTitle"),
+    confirm: t("confirmTitle"), payment: "Secure Payment", success: t("successTitle"),
   };
 
   return (
     <div
       className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={(e) => e.target === e.currentTarget && step !== "payment" && onClose()}
-      role="dialog" aria-modal="true" aria-label={t("reviewTitle")}
+      role="dialog" aria-modal="true"
     >
-      <div className="
-        bg-white dark:bg-slate-900
-        w-full sm:max-w-lg
-        rounded-t-3xl sm:rounded-2xl
-        shadow-2xl flex flex-col max-h-[92vh] overflow-hidden
-        transition-all duration-200 ease-in-out
-      ">
+      <div className="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden transition-all duration-200">
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div>
-            <h2 className="font-bold text-slate-900 dark:text-slate-100 text-lg">{STEP_TITLE[step]}</h2>
-            {step !== "success" && step !== "payment" && (
+            <h2 className="font-bold text-slate-900 dark:text-slate-100 text-lg">{TITLES[step]}</h2>
+            {!["success","payment"].includes(step) && (
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                 {t("itemCount", { count: cart.length })} · {fmt(totals.total)}
               </p>
             )}
           </div>
           {step !== "payment" && (
-            <button
-              onClick={onClose}
-              aria-label={tc("close")}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
-            >
+            <button onClick={onClose} aria-label={tc("close")}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200">
               <X size={16} />
             </button>
           )}
         </div>
 
-        {/* ── Progress bar (review / fulfillment / confirm only) ── */}
-        {PROGRESS_STEPS.includes(step) && (
+        {/* Progress */}
+        {PROGRESS.includes(step) && (
           <div className="flex px-5 py-2 gap-1 shrink-0">
-            {PROGRESS_STEPS.map((s, i) => (
+            {PROGRESS.map((s, i) => (
               <div key={s} className="flex-1 h-1 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-                <div className={`h-full rounded-full transition-all duration-300 ${
-                  PROGRESS_STEPS.indexOf(step) >= i ? "bg-emerald-500" : "bg-transparent"
-                }`} />
+                <div className={`h-full rounded-full transition-all duration-300 ${PROGRESS.indexOf(step) >= i ? "bg-emerald-500" : "bg-transparent"}`} />
               </div>
             ))}
           </div>
         )}
 
-        {/* ── Body ── */}
+        {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
-          {/* ── Review ── */}
+          {/* Review */}
           {step === "review" && (
-            cart.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 dark:text-slate-500">
-                <Package size={40} className="mx-auto mb-3 opacity-40" />
-                <p>{t("emptyCart")}</p>
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {cart.map((item) => (
-                  <li key={item.listing.id} className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-3 transition-all duration-200">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-base shrink-0">
-                      {item.listing.produceName.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm truncate">
-                        {item.listing.produceName}
-                        {item.listing.variety && (
-                          <span className="text-slate-400 dark:text-slate-500 font-normal"> ({item.listing.variety})</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {item.quantityKg.toLocaleString()} kg · {item.listing.currency} {item.listing.unitPrice}/kg
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                          {fmt(item.quantityKg * item.listing.unitPrice)}
-                        </p>
-                        <span className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                          item.selectedFulfillment === "SELF_PICKUP"
-                            ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
-                            : "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
-                        }`}>
-                          {item.selectedFulfillment === "SELF_PICKUP"
-                            ? <><Package size={9} /> Pickup</>
-                            : <><Truck   size={9} /> Delivery</>}
-                        </span>
+            cart.length === 0
+              ? <div className="text-center py-12 text-slate-400 dark:text-slate-500"><Package size={40} className="mx-auto mb-3 opacity-40" /><p>{t("emptyCart")}</p></div>
+              : (
+                <ul className="space-y-3">
+                  {cart.map((item) => (
+                    <li key={item.listing.id} className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold shrink-0">
+                        {item.listing.produceName.charAt(0)}
                       </div>
-                    </div>
-                    <button
-                      onClick={() => onRemoveItem(item.listing.id)}
-                      aria-label={t("remove", { name: item.listing.produceName })}
-                      className="text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors mt-0.5 shrink-0"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm truncate">
+                          {item.listing.produceName}
+                          {item.listing.variety && <span className="text-slate-400 dark:text-slate-500 font-normal"> ({item.listing.variety})</span>}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          {item.quantityKg.toLocaleString()} kg · {item.listing.currency} {item.listing.unitPrice}/kg
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{fmt(item.quantityKg * item.listing.unitPrice)}</p>
+                          <span className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium ${item.selectedFulfillment === "SELF_PICKUP" ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" : "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"}`}>
+                            {item.selectedFulfillment === "SELF_PICKUP" ? <><Package size={9} /> Pickup</> : <><Truck size={9} /> Delivery</>}
+                          </span>
+                        </div>
+                      </div>
+                      <button onClick={() => onRemoveItem(item.listing.id)} className="text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors mt-0.5 shrink-0">
+                        <Trash2 size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
           )}
 
-          {/* ── Fulfillment ── */}
+          {/* Fulfillment */}
           {step === "fulfillment" && (
             <div className="space-y-4">
-              <FulfillmentToggle
-                value={deliveryOption}
-                onChange={setDelivery}
-                availableOptions={availableOptions}
-                currency={totals.currency}
-                deliveryFee={BASE_DELIVERY_FEE}
-                compact={false}
-              />
+              <FulfillmentToggle value={deliveryOption} onChange={setDelivery} availableOptions={availableOptions} currency={totals.currency} deliveryFee={BASE_DELIVERY_FEE} compact={false} />
               {deliveryOption === "DELIVERED" && (
                 <div className="space-y-1">
                   <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
                     <MapPin size={14} className="text-emerald-600 dark:text-emerald-400" />
                     {t("deliveryAddressLabel")} <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    rows={3}
-                    placeholder={t("deliveryAddressPlaceholder")}
-                    value={deliveryAddress}
+                  <textarea rows={3} placeholder={t("deliveryAddressPlaceholder")} value={deliveryAddress}
                     onChange={(e) => { setAddress(e.target.value); if (e.target.value.trim()) setAddrError(""); }}
-                    className={`
-                      w-full border-2 rounded-xl px-3.5 py-3 text-sm resize-none
-                      focus:outline-none focus:ring-2 transition-all duration-200
-                      text-slate-900 dark:text-slate-200
-                      placeholder:text-slate-400 dark:placeholder:text-slate-500
-                      ${addressError
-                        ? "border-red-400 bg-red-50 dark:bg-red-950/30 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
-                        : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 focus:border-emerald-500 focus:ring-emerald-100 dark:focus:ring-emerald-900/30"
-                      }
-                    `}
+                    className={`w-full border-2 rounded-xl px-3.5 py-3 text-sm resize-none focus:outline-none focus:ring-2 transition-all duration-200 text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 ${addressError ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400 focus:border-emerald-500 focus:ring-emerald-100 dark:focus:ring-emerald-900/30"}`}
                   />
                   {addressError && <p className="text-xs text-red-500 dark:text-red-400">{addressError}</p>}
                 </div>
               )}
               <PrivacyBadge message={deliveryOption === "SELF_PICKUP" ? tp("pickupMessage") : tp("deliveryMessage")} />
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-1.5 text-sm transition-all duration-200">
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span>
-                </div>
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-1.5 text-sm">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400"><span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span></div>
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>{t("deliveryFee")}</span>
                   <span className={totals.deliveryFee === 0 ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-purple-600 dark:text-purple-400"}>
@@ -629,15 +539,12 @@ export default function CheckoutModal({
                   </span>
                 </div>
                 <hr className="border-slate-200 dark:border-slate-700" />
-                <div className="flex justify-between font-bold text-slate-900 dark:text-slate-100">
-                  <span>{t("total")}</span>
-                  <span className="text-emerald-700 dark:text-emerald-400">{fmt(totals.total)}</span>
-                </div>
+                <div className="flex justify-between font-bold text-slate-900 dark:text-slate-100"><span>{t("total")}</span><span className="text-emerald-700 dark:text-emerald-400">{fmt(totals.total)}</span></div>
               </div>
             </div>
           )}
 
-          {/* ── Confirm ── */}
+          {/* Confirm */}
           {step === "confirm" && (
             <div className="space-y-4">
               {placeError && (
@@ -649,35 +556,22 @@ export default function CheckoutModal({
                   </div>
                 </div>
               )}
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-2 text-sm transition-all duration-200">
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>{t("items")}</span><span>{cart.length}</span>
-                </div>
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-2 text-sm">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400"><span>{t("items")}</span><span>{cart.length}</span></div>
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>{t("fulfillmentLabel")}</span>
-                  <span className="flex items-center gap-1">
-                    {deliveryOption === "SELF_PICKUP"
-                      ? <><Package size={12} />{t("selfPickupLabel")}</>
-                      : <><Truck   size={12} />{t("deliveryLabel")}</>}
-                  </span>
+                  <span className="flex items-center gap-1">{deliveryOption === "SELF_PICKUP" ? <><Package size={12} />{t("selfPickupLabel")}</> : <><Truck size={12} />{t("deliveryLabel")}</>}</span>
                 </div>
                 {deliveryOption === "DELIVERED" && deliveryAddress && (
-                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                    <span>{t("addressLabel")}</span>
-                    <span className="text-right max-w-[55%] text-xs">{deliveryAddress}</span>
-                  </div>
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400"><span>{t("addressLabel")}</span><span className="text-right max-w-[55%] text-xs">{deliveryAddress}</span></div>
                 )}
+                <div className="flex justify-between text-slate-600 dark:text-slate-400"><span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span></div>
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>{t("subtotal")}</span><span>{fmt(totals.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>{t("deliveryFee")}</span>
-                  <span>{totals.deliveryFee === 0 ? tc("free") : fmt(totals.deliveryFee)}</span>
+                  <span>{t("deliveryFee")}</span><span>{totals.deliveryFee === 0 ? tc("free") : fmt(totals.deliveryFee)}</span>
                 </div>
                 <hr className="border-slate-200 dark:border-slate-700" />
                 <div className="flex justify-between font-bold text-slate-900 dark:text-slate-100 text-base">
-                  <span>{t("total")}</span>
-                  <span className="text-emerald-700 dark:text-emerald-400">{fmt(totals.total)}</span>
+                  <span>{t("total")}</span><span className="text-emerald-700 dark:text-emerald-400">{fmt(totals.total)}</span>
                 </div>
               </div>
               {deliveryOption === "SELF_PICKUP" && (
@@ -687,12 +581,12 @@ export default function CheckoutModal({
                 </div>
               )}
               <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
-                Payment processed securely via Flutterwave · MoMo, USSD & Card accepted
+                Payment via Flutterwave · Mobile Money, USSD &amp; Card
               </p>
             </div>
           )}
 
-          {/* ── Payment popup step ── */}
+          {/* Payment step */}
           {step === "payment" && paymentData && (
             <PaymentStep
               txRef={paymentData.txRef}
@@ -703,35 +597,26 @@ export default function CheckoutModal({
               buyerId={getStoredUser()?.userId ?? ""}
               publicKey={paymentData.publicKey}
               onSuccess={handlePaymentSuccess}
-              onCancel={handlePaymentCancel}
+              onCancel={() => { setPaymentData(null); setStep("confirm"); }}
             />
           )}
-
-          {/* ── Verifying overlay ── */}
           {step === "payment" && !paymentData && <VerifyingPayment />}
 
-          {/* ── Success ── */}
+          {/* Success */}
           {step === "success" && (
             <div className="space-y-5">
-              {verifying ? (
-                <VerifyingPayment />
-              ) : (
+              {verifying ? <VerifyingPayment /> : (
                 <>
                   <div className="text-center pt-2">
                     <div className="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
                       <CheckCircle2 size={32} className="text-emerald-500" />
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-slate-100 text-xl">{t("successTitle")}!</h3>
-                    <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
-                      Payment confirmed · Order #{firstOrderNumber}
-                    </p>
+                    <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">Payment confirmed · Order #{firstOrderNumber}</p>
                   </div>
                   {pickupContacts.map((c, i) => <PickupContactCard key={i} contact={c} />)}
                   {hasDelivery && <DeliveryTrackingCard orderNumber={firstOrderNumber} />}
-                  <button
-                    onClick={onClose}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-all duration-200"
-                  >
+                  <button onClick={onClose} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-all duration-200">
                     {tc("continueShoppingBtn")}
                   </button>
                 </>
@@ -740,51 +625,25 @@ export default function CheckoutModal({
           )}
         </div>
 
-        {/* ── Footer CTA (review / fulfillment / confirm only) ── */}
-        {["review", "fulfillment", "confirm"].includes(step) && cart.length > 0 && (
+        {/* Footer CTAs */}
+        {PROGRESS.includes(step) && cart.length > 0 && (
           <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
             {step === "review" && (
-              <button
-                onClick={() => setStep("fulfillment")}
-                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-3 rounded-xl transition-all duration-200"
-              >
+              <button onClick={() => setStep("fulfillment")} className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-3 rounded-xl transition-all duration-200">
                 {t("chooseDelivery")} <ChevronRight size={16} />
               </button>
             )}
             {step === "fulfillment" && (
               <div className="flex gap-3">
-                <button
-                  onClick={() => setStep("review")}
-                  className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200"
-                >
-                  {tc("back")}
-                </button>
-                <button
-                  onClick={validateAndNext}
-                  className="flex-[2] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all duration-200"
-                >
-                  {t("reviewOrder")} <ChevronRight size={16} />
-                </button>
+                <button onClick={() => setStep("review")} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200">{tc("back")}</button>
+                <button onClick={validateAndNext} className="flex-[2] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all duration-200">{t("reviewOrder")} <ChevronRight size={16} /></button>
               </div>
             )}
             {step === "confirm" && (
               <div className="flex gap-3">
-                <button
-                  onClick={() => setStep("fulfillment")}
-                  className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200"
-                >
-                  {tc("back")}
-                </button>
-                {/* ── THE BUTTON IS NOW "Pay Now" not "Place Order" ── */}
-                <button
-                  onClick={handleInitiatePayment}
-                  disabled={loading}
-                  className="flex-[2] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-3 rounded-xl transition-all duration-200"
-                >
-                  {loading
-                    ? <><Loader2 size={16} className="animate-spin" /> Creating order…</>
-                    : <><CreditCard size={15} /> Pay {fmt(totals.total)}</>
-                  }
+                <button onClick={() => setStep("fulfillment")} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200">{tc("back")}</button>
+                <button onClick={handleInitiatePayment} disabled={loading} className="flex-[2] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-3 rounded-xl transition-all duration-200">
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Creating order…</> : <><CreditCard size={15} /> Pay {fmt(totals.total)}</>}
                 </button>
               </div>
             )}
