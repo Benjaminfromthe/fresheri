@@ -14,7 +14,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateTxRef } from "@/lib/services/paymentService";
-import { API_BASE_URL, BASE_DELIVERY_FEE } from "@/lib/constants";
+import { BASE_DELIVERY_FEE } from "@/lib/constants";
+
+// Server-side: prefer non-public env var, fall back to NEXT_PUBLIC_ then hardcoded
+const BACKEND_URL =
+  process.env.API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://fresheri-v6kz.vercel.app";
 
 interface CartLineItem {
   listingId:    string;
@@ -73,7 +79,7 @@ export async function POST(req: NextRequest) {
       deliveryFee:     deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0,
     };
 
-    const res = await fetch(`${API_BASE_URL}/orders`, {
+    const res = await fetch(`${BACKEND_URL}/orders`, {
       method:  "POST",
       headers: {
         "Content-Type":  "application/json",

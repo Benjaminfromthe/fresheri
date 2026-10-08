@@ -21,7 +21,12 @@ import {
   verifyWebhookSignature,
   verifyTransaction,
 } from "@/lib/services/paymentService";
-import { API_BASE_URL } from "@/lib/constants";
+
+// Server-side backend URL — never needs NEXT_PUBLIC_
+const BACKEND_URL =
+  process.env.API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://fresheri-v6kz.vercel.app";
 
 interface FlwWebhookPayload {
   event: string;           // "charge.completed"
@@ -93,7 +98,7 @@ export async function POST(req: NextRequest) {
   const internalSecret = process.env.INTERNAL_WEBHOOK_SECRET ?? "fresheri-internal-2024";
 
   try {
-    const patchRes = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
+    const patchRes = await fetch(`${BACKEND_URL}/orders/${orderId}/payment`, {
       method: "PATCH",
       headers: {
         "Content-Type":           "application/json",
