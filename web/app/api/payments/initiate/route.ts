@@ -119,6 +119,11 @@ export async function POST(req: NextRequest) {
     currency:     currency ?? "RWF",
     pickupCode:   primaryOrder.pickupCode ?? null,
     pickupContact: primaryOrder.pickupContact ?? null,
+    // Return the public key from the server so the client doesn't need the
+    // NEXT_PUBLIC_ env var to be set on every deployment
+    publicKey:    process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY ??
+                  process.env.FLW_PUBLIC_KEY ??
+                  "",
     // Return all results so CheckoutModal can display them on success
     orderResults,
   });

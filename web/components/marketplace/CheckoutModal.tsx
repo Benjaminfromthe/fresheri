@@ -154,12 +154,13 @@ interface PaymentStepProps {
   orderId:     string;
   orderNumber: string;
   buyerId:     string;
+  publicKey:   string;
   onSuccess:   (txId: number) => void;
   onCancel:    () => void;
 }
 
 function PaymentStep({
-  txRef, amount, currency, orderId, orderNumber, buyerId,
+  txRef, amount, currency, orderId, orderNumber, buyerId, publicKey,
   onSuccess, onCancel,
 }: PaymentStepProps) {
   const [flwReady,   setFlwReady]   = useState(false);
@@ -186,7 +187,12 @@ function PaymentStep({
 
   const openPopup = useCallback(() => {
     if (!window.FlutterwaveCheckout) {
-      setFlwError("Payment gateway not loaded yet. Please wait.");
+      setFlwError("Payment gateway not loaded yet. Please wait a moment.");
+      return;
+    }
+
+    if (!publicKey) {
+      setFlwError("Payment gateway not configured. Please contact support.");
       return;
     }
 
@@ -194,7 +200,7 @@ function PaymentStep({
     setPopupOpen(true);
 
     window.FlutterwaveCheckout({
-      public_key:      process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY ?? "",
+      public_key:      publicKey,
       tx_ref:          txRef,
       amount:          amount,
       currency:        currency,
@@ -358,6 +364,7 @@ export default function CheckoutModal({
     orderNumber: string;
     amount:      number;
     currency:    string;
+    publicKey:   string;
   } | null>(null);
 
   useEffect(() => { setTotals(calcTotals(cart, deliveryOption)); }, [cart, deliveryOption]);
@@ -409,7 +416,7 @@ export default function CheckoutModal({
       const data = await res.json() as {
         txRef?: string; orderId?: string; orderNumber?: string;
         amount?: number; currency?: string; error?: string;
-        orderResults?: OrderResult[];
+        orderResults?: OrderResult[]; publicKey?: string;
       };
 
       if (!res.ok || !data.txRef) {
@@ -427,6 +434,7 @@ export default function CheckoutModal({
         orderNumber: data.orderNumber!,
         amount:      data.amount!,
         currency:    data.currency ?? totals.currency,
+        publicKey:   data.publicKey ?? "",
       });
 
       setStep("payment");
@@ -693,6 +701,7 @@ export default function CheckoutModal({
               orderId={paymentData.orderId}
               orderNumber={paymentData.orderNumber}
               buyerId={getStoredUser()?.userId ?? ""}
+              publicKey={paymentData.publicKey}
               onSuccess={handlePaymentSuccess}
               onCancel={handlePaymentCancel}
             />
