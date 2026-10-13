@@ -361,6 +361,7 @@ export interface AuthResult {
   firstName: string;
   lastName:  string;
   role:      string;
+  phone?:    string;
 }
 
 export interface SignUpPayload {
@@ -421,10 +422,11 @@ export function saveSession(result: AuthResult): void {
   try {
     localStorage.setItem(TOKEN_KEY, result.token);
     localStorage.setItem(USER_KEY, JSON.stringify({
-      userId: result.userId,
+      userId:    result.userId,
       firstName: result.firstName,
-      lastName: result.lastName,
-      role: result.role,
+      lastName:  result.lastName,
+      role:      result.role,
+      phone:     (result as AuthResult & { phone?: string }).phone ?? "",
     }));
   } catch { /* SSR safe */ }
 }

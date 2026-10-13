@@ -165,6 +165,14 @@ function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, p
   const [popupOpen,   setPopupOpen]   = useState(false);
   const [flwError,    setFlwError]    = useState<string | null>(null);
 
+  // Pre-fill phone from session so MoMo works with real number
+  const sessionUser = getStoredUser();
+  const sessionPhone = sessionUser?.phone ?? "";
+  const [phone, setPhone] = useState(
+    // Only pre-fill if it looks like a real phone (not a google: placeholder)
+    sessionPhone && !sessionPhone.startsWith("google:") ? sessionPhone : ""
+  );
+
   // Load FLW checkout script once
   useEffect(() => {
     if (window.FlutterwaveCheckout) { setScriptState("ready"); return; }
@@ -202,7 +210,8 @@ function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, p
     const email = user?.userId
       ? `user-${user.userId.replace(/-/g, "").slice(0, 12)}@fresheri.rw`
       : "buyer@fresheri.rw";
-    const name  = user ? `${user.firstName} ${user.lastName}` : "Fresheri Buyer";
+    const name       = user ? `${user.firstName} ${user.lastName}` : "Fresheri Buyer";
+    const phoneNumber = phone.trim() || user?.phone || "+250780000001";
 
     setPopupOpen(true);
 
@@ -211,9 +220,9 @@ function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, p
       tx_ref:          txRef,
       amount,
       currency,
-      payment_options: "mobilemoney,ussd,card",
+      payment_options: "card,mobilemoney,ussd",
       redirect_url:    `${window.location.origin}/orders`,
-      customer:        { email, phone_number: "+250780000001", name },
+      customer:        { email, phone_number: phoneNumber, name },
       meta:            { orderId, orderNumber, buyerId },
       customizations:  {
         title:       "Fresheri — Produce Marketplace",
@@ -265,6 +274,31 @@ function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, p
             MoMo: any MTN Rwanda number · pin <strong>1234</strong>
           </p>
         </div>
+      </div>
+
+      {/* Phone number input for MoMo */}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+          Your Phone Number (for Mobile Money)
+        </label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="e.g. +250781234567"
+          className="
+            w-full border-2 rounded-xl px-3.5 py-2.5 text-sm
+            border-slate-200 dark:border-slate-700
+            bg-white dark:bg-slate-800
+            text-slate-900 dark:text-slate-100
+            placeholder:text-slate-400 dark:placeholder:text-slate-500
+            focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30
+            transition-all duration-200
+          "
+        />
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          Used for MoMo OTP. For card payment, any number works.
+        </p>
       </div>
 
       {/* Script loading indicator */}

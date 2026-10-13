@@ -55,6 +55,7 @@ export interface AuthResult {
   firstName: string;
   lastName:  string;
   role:      UserRole;
+  phone:     string;
 }
 
 // ── Token helper ─────────────────────────────────────────────
@@ -123,7 +124,7 @@ export async function signUp(
         status:       UserStatus.ACTIVE,
         isVerified:   false,
       },
-      select: { id: true, firstName: true, lastName: true, role: true },
+      select: { id: true, firstName: true, lastName: true, role: true, phone: true },
     });
 
     // 2. Create role-specific profile
@@ -172,6 +173,7 @@ export async function signUp(
     firstName: user.firstName,
     lastName:  user.lastName,
     role:      user.role,
+    phone:     input.phone,
   };
 }
 
@@ -187,7 +189,7 @@ export async function signIn(
     where:  { phone: input.phone },
     select: {
       id: true, firstName: true, lastName: true,
-      role: true, status: true, passwordHash: true,
+      role: true, status: true, passwordHash: true, phone: true,
     },
   });
 
@@ -213,6 +215,7 @@ export async function signIn(
     firstName: user.firstName,
     lastName:  user.lastName,
     role:      user.role,
+    phone:     user.phone,
   };
 }
 
@@ -250,7 +253,7 @@ export async function googleAuth(
   // Upsert by email — if user doesn't exist, create as HOUSEHOLD_BUYER
   let user = await db.user.findUnique({
     where:  { email },
-    select: { id: true, firstName: true, lastName: true, role: true, status: true },
+    select: { id: true, firstName: true, lastName: true, role: true, status: true, phone: true },
   });
 
   if (!user) {
@@ -266,10 +269,10 @@ export async function googleAuth(
           lastName,
           role:            UserRole.HOUSEHOLD_BUYER,
           status:          UserStatus.ACTIVE,
-          isVerified:      true, // Google-verified email
+          isVerified:      true,
           profileImageUrl: picture,
         },
-        select: { id: true, firstName: true, lastName: true, role: true, status: true },
+        select: { id: true, firstName: true, lastName: true, role: true, status: true, phone: true },
       });
 
       await tx.buyerProfile.create({
@@ -291,5 +294,6 @@ export async function googleAuth(
     firstName: user.firstName,
     lastName:  user.lastName,
     role:      user.role,
+    phone:     user.phone ?? "",
   };
 }
