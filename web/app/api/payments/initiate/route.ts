@@ -2,129 +2,113 @@
 // POST /api/payments/initiate
 //
 // Flow:
-//   1. Receive cart items + fulfillment choice from CheckoutModal
-//   2. Call the Express backend to place the order (creates DB record)
-//   3. Generate a Flutterwave txRef tied to the orderId
-//   4. Return { txRef, orderId, orderNumber, amount, currency }
-//      so the browser can open the FLW popup without another round-trip
+//   1. Place the order(s) on the Express backend
+//   2. Trigger a Paypack cashin (MoMo push) to the buyer's phone
+//   3. Return { ref, orderId, amount } to the client for polling
 //
-// The order is created with paymentStatus = UNPAID.
-// On successful payment, the webhook route flips it to PAID.
+// The customer receives a MoMo push notification — they just
+// approve it on their phone. No redirect, no OTP screen.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
-import { generateTxRef } from "@/lib/services/paymentService";
+import { initiateCashin, normalisePhone } from "@/lib/services/paypackService";
 import { BASE_DELIVERY_FEE } from "@/lib/constants";
 
-// Server-side: prefer non-public env var, fall back to NEXT_PUBLIC_ then hardcoded
 const BACKEND_URL =
   process.env.API_BASE_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
   "https://fresheri-v6kz.vercel.app";
 
 interface CartLineItem {
-  listingId:    string;
-  quantityKg:   number;
-  unitPrice:    number;
-  fulfillment:  "SELF_PICKUP" | "DELIVERED";
+  listingId:   string;
+  quantityKg:  number;
+  unitPrice:   number;
+  fulfillment: "SELF_PICKUP" | "DELIVERED";
 }
 
-interface InitiatePaymentRequest {
-  buyerId:         string;
-  buyerToken:      string;          // JWT — forwarded to Express for auth
-  cart:            CartLineItem[];
-  deliveryOption:  "SELF_PICKUP" | "DELIVERED";
+interface InitiateRequest {
+  buyerId:          string;
+  buyerToken:       string;
+  buyerPhone:       string;   // real phone for MoMo push
+  cart:             CartLineItem[];
+  deliveryOption:   "SELF_PICKUP" | "DELIVERED";
   deliveryAddress?: string;
-  currency:        string;          // "RWF"
+  currency:         string;
 }
 
 interface ExpressOrderResult {
-  orderId:        string;
-  orderNumber:    string;
-  totalAmount:    number;
-  currency:       string;
-  pickupCode?:    string | null;
+  orderId:      string;
+  orderNumber:  string;
+  totalAmount:  number;
+  currency:     string;
+  pickupCode?:  string | null;
   pickupContact?: unknown;
 }
 
 export async function POST(req: NextRequest) {
-  let body: InitiatePaymentRequest;
-  try {
-    body = (await req.json()) as InitiatePaymentRequest;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+  let body: InitiateRequest;
+  try { body = (await req.json()) as InitiateRequest; }
+  catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { buyerId, buyerToken, cart, deliveryOption, deliveryAddress, currency } = body;
+  const { buyerId, buyerToken, buyerPhone, cart, deliveryOption, deliveryAddress, currency } = body;
 
-  if (!buyerId || !cart?.length || !deliveryOption) {
+  if (!buyerId || !cart?.length || !deliveryOption || !buyerPhone) {
     return NextResponse.json(
-      { error: "buyerId, cart, and deliveryOption are required" },
+      { error: "buyerId, buyerPhone, cart, and deliveryOption are required" },
       { status: 400 }
     );
   }
 
-  // ── 1. Place all orders against the Express backend ─────────
-  // We place them sequentially so a stock failure on item #2
-  // doesn't leave item #1 in a paid-but-not-ordered limbo.
+  // ── 1. Place all orders sequentially on Express backend ─────
   const orderResults: ExpressOrderResult[] = [];
-
   for (const item of cart) {
-    const payload = {
-      buyerId,
-      listingId:       item.listingId,
-      quantityKg:      item.quantityKg,
-      deliveryOption,
-      deliveryAddress: deliveryAddress ?? undefined,
-      deliveryFee:     deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0,
-    };
-
     const res = await fetch(`${BACKEND_URL}/orders`, {
-      method:  "POST",
+      method: "POST",
       headers: {
         "Content-Type":  "application/json",
         "Authorization": `Bearer ${buyerToken}`,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        buyerId,
+        listingId:       item.listingId,
+        quantityKg:      item.quantityKg,
+        deliveryOption,
+        deliveryAddress: deliveryAddress ?? undefined,
+        deliveryFee:     deliveryOption === "DELIVERED" ? BASE_DELIVERY_FEE : 0,
+      }),
     });
 
     if (!res.ok) {
-      let message = `Order placement failed (HTTP ${res.status})`;
-      try {
-        const errBody = (await res.json()) as { message?: string };
-        message = errBody.message ?? message;
-      } catch { /* non-JSON */ }
+      let message = `Order failed (HTTP ${res.status})`;
+      try { message = ((await res.json()) as { message?: string }).message ?? message; } catch { /* */ }
       return NextResponse.json({ error: message }, { status: res.status });
     }
-
     const json = (await res.json()) as { data: ExpressOrderResult };
     orderResults.push(json.data);
   }
 
-  // ── 2. Aggregate total across all order lines ────────────────
-  const grandTotal = orderResults.reduce((sum, o) => sum + o.totalAmount, 0);
+  const grandTotal    = orderResults.reduce((s, o) => s + o.totalAmount, 0);
+  const primaryOrder  = orderResults[0];
 
-  // Use the first order's ID as the primary reference.
-  // For multi-item carts all orders are created; the txRef carries orderId[0].
-  const primaryOrder   = orderResults[0];
-  const allOrderIds    = orderResults.map((o) => o.orderId);
-  const txRef          = generateTxRef(primaryOrder.orderId);
+  // ── 2. Trigger Paypack cashin (MoMo push to buyer's phone) ──
+  try {
+    const cashin = await initiateCashin(buyerPhone, grandTotal);
 
-  return NextResponse.json({
-    txRef,
-    orderId:      primaryOrder.orderId,
-    allOrderIds,
-    orderNumber:  primaryOrder.orderNumber,
-    amount:       grandTotal,
-    currency:     currency ?? "RWF",
-    pickupCode:   primaryOrder.pickupCode ?? null,
-    pickupContact: primaryOrder.pickupContact ?? null,
-    // Return the public key from the server so the client doesn't need the
-    // NEXT_PUBLIC_ env var to be set on every deployment
-    publicKey:    process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY ??
-                  process.env.FLW_PUBLIC_KEY ??
-                  "",
-    // Return all results so CheckoutModal can display them on success
-    orderResults,
-  });
+    // Store the paypack ref on the order so the webhook can match it
+    // We pass it back to the client for polling
+    return NextResponse.json({
+      ref:          cashin.ref,          // Paypack transaction ref — used for polling
+      orderId:      primaryOrder.orderId,
+      allOrderIds:  orderResults.map((o) => o.orderId),
+      orderNumber:  primaryOrder.orderNumber,
+      amount:       grandTotal,
+      currency:     currency ?? "RWF",
+      phone:        normalisePhone(buyerPhone),
+      pickupCode:   primaryOrder.pickupCode ?? null,
+      orderResults,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Payment initiation failed";
+    return NextResponse.json({ error: msg }, { status: 502 });
+  }
 }

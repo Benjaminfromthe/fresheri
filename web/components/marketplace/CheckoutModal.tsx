@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   X, Truck, Package, Trash2, ChevronRight, MapPin,
   CheckCircle2, Loader2, Phone, Navigation, Clock,
-  ShieldCheck, Lock, CreditCard, Smartphone, AlertCircle,
+  ShieldCheck, Lock, Smartphone, AlertCircle,
 } from "lucide-react";
 import {
   CartItem, DeliveryOption, CheckoutTotals, OrderResult, PickupContact,
@@ -15,13 +15,8 @@ import { getStoredUser }     from "@/lib/api-client";
 import FulfillmentToggle     from "./FulfillmentToggle";
 import PrivacyBadge          from "./PrivacyBadge";
 
-// ── Flutterwave global type ───────────────────────────────────
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    FlutterwaveCheckout?: (config: Record<string, any>) => void;
-  }
-}
+// ── Paypack global type (no external script needed) ──────────
+// Paypack is a pure REST API — no client-side JS to load
 
 // ─────────────────────────────────────────────────────────────
 // Props
@@ -146,105 +141,75 @@ function DeliveryTrackingCard({ orderNumber }: { orderNumber: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// PaymentStep — loads FLW v3.js and opens popup on button click
+// PaymentStep — Paypack MoMo push + polling
+//
+// Flow:
+//   1. User confirms their phone number
+//   2. We POST to /api/payments/initiate (already called — data is ready)
+//   3. User sees "Check your phone" screen
+//   4. We poll GET /api/payments/status?ref=… every 3 seconds
+//   5. On "successful" → call onSuccess()
+//   6. On "failed" → show error, allow retry
 // ─────────────────────────────────────────────────────────────
+
 interface PaymentStepProps {
-  txRef:       string;
+  paypackRef:  string;          // Paypack transaction ref from initiate
   amount:      number;
   currency:    string;
-  orderId:     string;
+  phone:       string;          // normalised phone that received the push
   orderNumber: string;
-  buyerId:     string;
-  publicKey:   string;
-  onSuccess:   (txId: number) => void;
+  onSuccess:   () => void;
   onCancel:    () => void;
 }
 
-function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, publicKey, onSuccess, onCancel }: PaymentStepProps) {
-  const [scriptState, setScriptState] = useState<"loading" | "ready" | "error">("loading");
-  const [popupOpen,   setPopupOpen]   = useState(false);
-  const [flwError,    setFlwError]    = useState<string | null>(null);
-
-  // Pre-fill phone from session so MoMo works with real number
-  const sessionUser = getStoredUser();
-  const sessionPhone = sessionUser?.phone ?? "";
-  const [phone, setPhone] = useState(
-    // Only pre-fill if it looks like a real phone (not a google: placeholder)
-    sessionPhone && !sessionPhone.startsWith("google:") ? sessionPhone : ""
-  );
-
-  // Load FLW checkout script once
-  useEffect(() => {
-    if (window.FlutterwaveCheckout) { setScriptState("ready"); return; }
-
-    const existing = document.querySelector('script[src="https://checkout.flutterwave.com/v3.js"]') as HTMLScriptElement | null;
-    if (existing) {
-      const wait = setInterval(() => {
-        if (window.FlutterwaveCheckout) { clearInterval(wait); setScriptState("ready"); }
-      }, 150);
-      return () => clearInterval(wait);
-    }
-
-    const s = document.createElement("script");
-    s.src   = "https://checkout.flutterwave.com/v3.js";
-    s.async = true;
-    s.onload  = () => setScriptState("ready");
-    s.onerror = () => setScriptState("error");
-    document.head.appendChild(s);
-  }, []);
-
-  // Called DIRECTLY from onClick — must stay synchronous so browser trusts the gesture
-  const handlePay = () => {
-    setFlwError(null);
-
-    if (!window.FlutterwaveCheckout || scriptState !== "ready") {
-      setFlwError("Payment gateway still loading. Please wait a moment and try again.");
-      return;
-    }
-    if (!publicKey || publicKey.length < 10) {
-      setFlwError("Payment not configured. Please refresh the page.");
-      return;
-    }
-
-    const user  = getStoredUser();
-    const email = user?.userId
-      ? `user-${user.userId.replace(/-/g, "").slice(0, 12)}@fresheri.rw`
-      : "buyer@fresheri.rw";
-    const name       = user ? `${user.firstName} ${user.lastName}` : "Fresheri Buyer";
-    const phoneNumber = phone.trim() || user?.phone || "+250780000001";
-
-    setPopupOpen(true);
-
-    window.FlutterwaveCheckout({
-      public_key:      publicKey,
-      tx_ref:          txRef,
-      amount,
-      currency,
-      payment_options: "card,mobilemoney,ussd",
-      redirect_url:    `${window.location.origin}/orders`,
-      customer:        { email, phone_number: phoneNumber, name },
-      meta:            { orderId, orderNumber, buyerId },
-      customizations:  {
-        title:       "Fresheri — Produce Marketplace",
-        description: `Order #${orderNumber}`,
-        logo:        "https://fresheri.vercel.app/favicon.ico",
-      },
-      callback: (response: { status: string; transaction_id?: number }) => {
-        setPopupOpen(false);
-        if (response.status === "successful" && response.transaction_id) {
-          onSuccess(response.transaction_id);
-        } else if (response.status !== "cancelled") {
-          setFlwError(`Payment ${response.status}. Please try again.`);
-        }
-      },
-      onclose: () => setPopupOpen(false),
-    });
-  };
+function PaymentStep({ paypackRef, amount, currency, phone, orderNumber, onSuccess, onCancel }: PaymentStepProps) {
+  const [pollStatus, setPollStatus] = useState<"pending" | "successful" | "failed">("pending");
+  const [pollError,  setPollError]  = useState<string | null>(null);
+  const [attempts,   setAttempts]   = useState(0);
+  const MAX_ATTEMPTS = 40; // 40 × 3s = 2 minutes timeout
 
   const fmt = `${currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
 
+  // Poll every 3 seconds
+  useEffect(() => {
+    if (pollStatus !== "pending") return;
+
+    const interval = setInterval(async () => {
+      setAttempts((a) => {
+        if (a >= MAX_ATTEMPTS) {
+          clearInterval(interval);
+          setPollStatus("failed");
+          setPollError("Payment timed out. Please try again.");
+          return a;
+        }
+        return a + 1;
+      });
+
+      try {
+        const res  = await fetch(`/api/payments/status?ref=${paypackRef}`);
+        const data = await res.json() as { status?: string; error?: string };
+
+        if (data.status === "successful") {
+          clearInterval(interval);
+          setPollStatus("successful");
+          setTimeout(onSuccess, 800); // brief pause so user sees the tick
+        } else if (data.status === "failed") {
+          clearInterval(interval);
+          setPollStatus("failed");
+          setPollError("Payment was declined. Please try again.");
+        }
+        // "pending" — keep polling
+      } catch {
+        // Network hiccup — keep polling, don't abort
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [paypackRef, pollStatus, onSuccess]);
+
   return (
     <div className="space-y-5 py-2">
+
       {/* Amount */}
       <div className="text-center">
         <p className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest mb-1">Total to Pay</p>
@@ -252,101 +217,107 @@ function PaymentStep({ txRef, amount, currency, orderId, orderNumber, buyerId, p
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Order #{orderNumber}</p>
       </div>
 
-      {/* Payment method chips */}
-      <div className="flex items-center justify-center gap-3">
-        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
-          <Smartphone size={14} className="text-emerald-600 dark:text-emerald-400" />
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Mobile Money</span>
-        </div>
-        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
-          <CreditCard size={14} className="text-blue-600 dark:text-blue-400" />
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Card</span>
-        </div>
-      </div>
+      {/* Status display */}
+      {pollStatus === "pending" && (
+        <div className="flex flex-col items-center gap-4 py-4">
+          {/* Animated phone icon */}
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+              <Smartphone size={36} className="text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center">
+              <Loader2 size={14} className="text-white animate-spin" />
+            </div>
+          </div>
 
-      {/* Test mode notice */}
-      <div className="flex items-start gap-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-xl px-4 py-3">
-        <AlertCircle size={13} className="text-blue-500 mt-0.5 shrink-0" />
-        <div>
-          <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">Test Mode Active</p>
-          <p className="text-xs text-blue-600 dark:text-blue-500 mt-0.5 leading-relaxed">
-            Card: <strong>4187427415564246</strong> · exp 09/32 · CVV 828<br />
-            MoMo: any MTN Rwanda number · pin <strong>1234</strong>
+          <div className="text-center">
+            <p className="font-bold text-slate-900 dark:text-slate-100 text-base">
+              Check your phone!
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">
+              A Mobile Money payment request of <strong>{fmt}</strong> has been sent to
+            </p>
+            <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400 mt-1">
+              {phone}
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+              Open your MTN MoMo or Airtel app and approve the request.
+            </p>
+          </div>
+
+          {/* Progress dots */}
+          <div className="flex gap-1.5">
+            {[0,1,2].map((i) => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full bg-emerald-500"
+                style={{ animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite` }}
+              />
+            ))}
+          </div>
+
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Waiting for approval… ({Math.max(0, MAX_ATTEMPTS - attempts) * 3}s remaining)
           </p>
         </div>
-      </div>
-
-      {/* Phone number input for MoMo */}
-      <div className="space-y-1.5">
-        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-          Your Phone Number (for Mobile Money)
-        </label>
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="e.g. +250781234567"
-          className="
-            w-full border-2 rounded-xl px-3.5 py-2.5 text-sm
-            border-slate-200 dark:border-slate-700
-            bg-white dark:bg-slate-800
-            text-slate-900 dark:text-slate-100
-            placeholder:text-slate-400 dark:placeholder:text-slate-500
-            focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30
-            transition-all duration-200
-          "
-        />
-        <p className="text-xs text-slate-400 dark:text-slate-500">
-          Used for MoMo OTP. For card payment, any number works.
-        </p>
-      </div>
-
-      {/* Script loading indicator */}
-      {scriptState === "loading" && (
-        <p className="flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-          <Loader2 size={12} className="animate-spin" /> Loading secure payment gateway…
-        </p>
-      )}
-      {scriptState === "error" && (
-        <p className="text-xs text-red-500 text-center">Could not load payment gateway. Check your connection.</p>
       )}
 
-      {/* Error banner */}
-      {flwError && (
-        <div className="flex items-start gap-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-xl px-4 py-3">
-          <AlertCircle size={13} className="text-red-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-700 dark:text-red-400">{flwError}</p>
+      {pollStatus === "successful" && (
+        <div className="flex flex-col items-center gap-3 py-4">
+          <div className="w-20 h-20 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+            <CheckCircle2 size={40} className="text-emerald-500" />
+          </div>
+          <p className="font-bold text-slate-900 dark:text-slate-100 text-lg">Payment approved!</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Confirming your order…</p>
         </div>
       )}
 
-      {/* Pay button */}
-      <button
-        onClick={handlePay}
-        disabled={scriptState !== "ready" || popupOpen}
-        className="
-          w-full flex items-center justify-center gap-2.5
-          py-4 rounded-2xl font-bold text-base text-white
-          bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98]
-          disabled:opacity-50 disabled:cursor-not-allowed
-          transition-all duration-200
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500
-        "
-      >
-        {scriptState === "loading" ? (
-          <><Loader2 size={18} className="animate-spin" /> Loading…</>
-        ) : popupOpen ? (
-          <><Loader2 size={18} className="animate-spin" /> Payment window open…</>
-        ) : (
-          <><CreditCard size={18} /> Pay {fmt} Now</>
-        )}
-      </button>
+      {pollStatus === "failed" && (
+        <div className="space-y-4">
+          <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-xl px-4 py-3">
+            <AlertCircle size={14} className="text-red-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-red-700 dark:text-red-400">Payment failed</p>
+              <p className="text-xs text-red-600 dark:text-red-500 mt-0.5">{pollError}</p>
+            </div>
+          </div>
+          <button
+            onClick={onCancel}
+            className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200"
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
-      <button
-        onClick={onCancel}
-        className="w-full text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1"
-      >
-        ← Back to order review
-      </button>
+      {/* Instructions */}
+      {pollStatus === "pending" && (
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-xl px-4 py-3 space-y-1.5">
+          <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">How to approve:</p>
+          <p className="text-xs text-blue-600 dark:text-blue-500">
+            <strong>MTN MoMo:</strong> You'll get a notification → tap it → enter your MoMo PIN
+          </p>
+          <p className="text-xs text-blue-600 dark:text-blue-500">
+            <strong>Airtel Money:</strong> You'll get an SMS/notification → dial *182# or open Airtel app → approve
+          </p>
+        </div>
+      )}
+
+      {pollStatus === "pending" && (
+        <button
+          onClick={onCancel}
+          className="w-full text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1"
+        >
+          Cancel payment
+        </button>
+      )}
+
+      <style>{`
+        @keyframes pulse {
+          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -386,8 +357,12 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
   const [verifying, setVerifying]     = useState(false);
   const [orderResults, setResults]    = useState<OrderResult[]>([]);
   const [paymentData, setPaymentData] = useState<{
-    txRef: string; orderId: string; orderNumber: string;
-    amount: number; currency: string; publicKey: string;
+    ref:         string;   // Paypack transaction ref
+    orderId:     string;
+    orderNumber: string;
+    amount:      number;
+    currency:    string;
+    phone:       string;
   } | null>(null);
 
   useEffect(() => { setTotals(calcTotals(cart, deliveryOption)); }, [cart, deliveryOption]);
@@ -407,27 +382,39 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
     const user = getStoredUser();
     if (!user?.userId) { setPlaceError("Not authenticated. Please sign in."); setLoading(false); return; }
 
+    // Get phone from session
+    const buyerPhone = user.phone && !user.phone.startsWith("google:") ? user.phone : "";
+    if (!buyerPhone) {
+      setPlaceError("Phone number not found. Please sign out and sign in again.");
+      setLoading(false); return;
+    }
+
     try {
       const res = await fetch("/api/payments/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          buyerId: user.userId, buyerToken: user.token,
-          deliveryOption, deliveryAddress: deliveryAddress || undefined,
+          buyerId:     user.userId,
+          buyerToken:  user.token,
+          buyerPhone,
+          deliveryOption,
+          deliveryAddress: deliveryAddress || undefined,
           currency: totals.currency,
           cart: cart.map((item) => ({
-            listingId: item.listing.id, quantityKg: item.quantityKg,
-            unitPrice: item.listing.unitPrice, fulfillment: item.selectedFulfillment,
+            listingId:   item.listing.id,
+            quantityKg:  item.quantityKg,
+            unitPrice:   item.listing.unitPrice,
+            fulfillment: item.selectedFulfillment,
           })),
         }),
       });
 
       const data = await res.json() as {
-        txRef?: string; orderId?: string; orderNumber?: string; amount?: number;
-        currency?: string; publicKey?: string; orderResults?: OrderResult[]; error?: string;
+        ref?: string; orderId?: string; orderNumber?: string; amount?: number;
+        currency?: string; phone?: string; orderResults?: OrderResult[]; error?: string;
       };
 
-      if (!res.ok || !data.txRef) {
+      if (!res.ok || !data.ref) {
         setPlaceError(data.error ?? "Failed to create order. Please try again.");
         setLoading(false); return;
       }
@@ -435,12 +422,12 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
       if (data.orderResults) setResults(data.orderResults);
 
       setPaymentData({
-        txRef:       data.txRef,
+        ref:         data.ref,
         orderId:     data.orderId!,
         orderNumber: data.orderNumber!,
         amount:      data.amount!,
         currency:    data.currency ?? totals.currency,
-        publicKey:   data.publicKey ?? "",
+        phone:       data.phone ?? buyerPhone,
       });
       setStep("payment");
     } catch (err) {
@@ -451,10 +438,9 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
   };
 
   // ── Payment success ───────────────────────────────────────
-  const handlePaymentSuccess = (_txId: number) => {
+  const handlePaymentSuccess = () => {
     setVerifying(true);
     setStep("success");
-    // Clear the cart after payment — call silently, we already have results
     onPlaceOrder(deliveryOption, deliveryAddress).catch(() => undefined);
     setVerifying(false);
   };
@@ -615,21 +601,19 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
                 </div>
               )}
               <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
-                Payment via Flutterwave · Mobile Money, USSD &amp; Card
+                Payment via Paypack · MTN MoMo &amp; Airtel Money Rwanda
               </p>
             </div>
           )}
 
-          {/* Payment step */}
+          {/* Payment step — Paypack MoMo push + polling */}
           {step === "payment" && paymentData && (
             <PaymentStep
-              txRef={paymentData.txRef}
+              paypackRef={paymentData.ref}
               amount={paymentData.amount}
               currency={paymentData.currency}
-              orderId={paymentData.orderId}
+              phone={paymentData.phone}
               orderNumber={paymentData.orderNumber}
-              buyerId={getStoredUser()?.userId ?? ""}
-              publicKey={paymentData.publicKey}
               onSuccess={handlePaymentSuccess}
               onCancel={() => { setPaymentData(null); setStep("confirm"); }}
             />
@@ -677,7 +661,7 @@ export default function CheckoutModal({ cart, onClose, onRemoveItem, onPlaceOrde
               <div className="flex gap-3">
                 <button onClick={() => setStep("fulfillment")} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all duration-200">{tc("back")}</button>
                 <button onClick={handleInitiatePayment} disabled={loading} className="flex-[2] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-3 rounded-xl transition-all duration-200">
-                  {loading ? <><Loader2 size={16} className="animate-spin" /> Creating order…</> : <><CreditCard size={15} /> Pay {fmt(totals.total)}</>}
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Sending request…</> : <><Smartphone size={15} /> Pay {fmt(totals.total)} via MoMo</>}
                 </button>
               </div>
             )}
