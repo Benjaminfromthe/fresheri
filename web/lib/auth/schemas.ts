@@ -11,7 +11,11 @@ import { z } from "zod";
 const phone = z
   .string()
   .min(1, "errRequired")
-  .regex(/^\+?[1-9]\d{7,14}$/, "errPhoneInvalid");
+  .regex(
+    /^\+?(?:0|[1-9])\d{7,14}$/,
+    "errPhoneInvalid"
+    // Accepts: 0794915285 | +250794915285 | 250794915285
+  );
 
 const password = z
   .string()

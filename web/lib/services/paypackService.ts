@@ -88,15 +88,26 @@ async function getAccessToken(): Promise<string> {
   return cachedToken;
 }
 
-// ── Normalise phone to 07xxxxxxxx format ─────────────────────
+// ── Normalise phone to 07xxxxxxxx format (10 digits) ─────────
+// Handles: 0794915285, +250794915285, 250794915285, 794915285
 
 export function normalisePhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
-  // 250794915285 → 0794915285
-  if (digits.startsWith("250") && digits.length === 12) return `0${digits.slice(3)}`;
-  // +250794915285 → already handled above
-  if (digits.length === 9) return `0${digits}`;  // 794915285 → 0794915285
-  return digits; // already 0794915285
+
+  // 250794915285 or 2507... (12 digits starting with 250)
+  if (digits.startsWith("250") && digits.length === 12) {
+    return `0${digits.slice(3)}`;  // → 0794915285
+  }
+  // 0794915285 (10 digits starting with 0) — already correct
+  if (digits.startsWith("0") && digits.length === 10) {
+    return digits;
+  }
+  // 794915285 (9 digits, missing leading 0)
+  if (digits.length === 9) {
+    return `0${digits}`;  // → 0794915285
+  }
+  // Fallback — return as-is
+  return digits;
 }
 
 // ─────────────────────────────────────────────────────────────
