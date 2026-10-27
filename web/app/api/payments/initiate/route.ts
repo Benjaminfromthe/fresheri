@@ -1,13 +1,11 @@
 // ─────────────────────────────────────────────────────────────
 // POST /api/payments/initiate
 //
-// Flow:
-//   1. Place the order(s) on the Express backend
-//   2. Trigger a Paypack cashin (MoMo push) to the buyer's phone
-//   3. Return { ref, orderId, amount } to the client for polling
-//
-// The customer receives a MoMo push notification — they just
-// approve it on their phone. No redirect, no OTP screen.
+// Two modes:
+//   skipCashin: true  → place orders only, return orderId
+//                        (PaymentStep handles the MoMo push separately)
+//   skipCashin: false → place orders AND trigger cashin immediately
+//                        (legacy / direct flow)
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
@@ -29,19 +27,20 @@ interface CartLineItem {
 interface InitiateRequest {
   buyerId:          string;
   buyerToken:       string;
-  buyerPhone:       string;   // real phone for MoMo push
+  buyerPhone:       string;
   cart:             CartLineItem[];
   deliveryOption:   "SELF_PICKUP" | "DELIVERED";
   deliveryAddress?: string;
   currency:         string;
+  skipCashin?:      boolean;
 }
 
 interface ExpressOrderResult {
-  orderId:      string;
-  orderNumber:  string;
-  totalAmount:  number;
-  currency:     string;
-  pickupCode?:  string | null;
+  orderId:       string;
+  orderNumber:   string;
+  totalAmount:   number;
+  currency:      string;
+  pickupCode?:   string | null;
   pickupContact?: unknown;
 }
 
@@ -50,16 +49,16 @@ export async function POST(req: NextRequest) {
   try { body = (await req.json()) as InitiateRequest; }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { buyerId, buyerToken, buyerPhone, cart, deliveryOption, deliveryAddress, currency } = body;
+  const { buyerId, buyerToken, buyerPhone, cart, deliveryOption, deliveryAddress, currency, skipCashin } = body;
 
-  if (!buyerId || !cart?.length || !deliveryOption || !buyerPhone) {
+  if (!buyerId || !cart?.length || !deliveryOption) {
     return NextResponse.json(
-      { error: "buyerId, buyerPhone, cart, and deliveryOption are required" },
+      { error: "buyerId, cart, and deliveryOption are required" },
       { status: 400 }
     );
   }
 
-  // ── 1. Place all orders sequentially on Express backend ─────
+  // ── Place orders on Express backend ──────────────────────────
   const orderResults: ExpressOrderResult[] = [];
   for (const item of cart) {
     const res = await fetch(`${BACKEND_URL}/orders`, {
@@ -87,17 +86,27 @@ export async function POST(req: NextRequest) {
     orderResults.push(json.data);
   }
 
-  const grandTotal    = orderResults.reduce((s, o) => s + o.totalAmount, 0);
-  const primaryOrder  = orderResults[0];
+  const grandTotal   = orderResults.reduce((s, o) => s + o.totalAmount, 0);
+  const primaryOrder = orderResults[0];
 
-  // ── 2. Trigger Paypack cashin (MoMo push to buyer's phone) ──
-  try {
-    const cashin = await initiateCashin(buyerPhone, grandTotal);
-
-    // Store the paypack ref on the order so the webhook can match it
-    // We pass it back to the client for polling
+  // ── Skip cashin — just return order details ───────────────────
+  if (skipCashin) {
     return NextResponse.json({
-      ref:          cashin.ref,          // Paypack transaction ref — used for polling
+      orderId:      primaryOrder.orderId,
+      allOrderIds:  orderResults.map((o) => o.orderId),
+      orderNumber:  primaryOrder.orderNumber,
+      amount:       grandTotal,
+      currency:     currency ?? "RWF",
+      pickupCode:   primaryOrder.pickupCode ?? null,
+      orderResults,
+    });
+  }
+
+  // ── Trigger cashin immediately ────────────────────────────────
+  try {
+    const cashin = await initiateCashin(normalisePhone(buyerPhone), grandTotal);
+    return NextResponse.json({
+      ref:          cashin.ref,
       orderId:      primaryOrder.orderId,
       allOrderIds:  orderResults.map((o) => o.orderId),
       orderNumber:  primaryOrder.orderNumber,
