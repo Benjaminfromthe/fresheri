@@ -62,8 +62,13 @@ let tokenExpiry: number        = 0;
 async function getAccessToken(): Promise<string> {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
 
-  const clientId     = process.env.PAYPACK_CLIENT_ID ?? "";
-  const clientSecret = process.env.PAYPACK_CLIENT_SECRET ?? "";
+  // Try env vars in order of preference
+  const clientId     = process.env.PAYPACK_CLIENT_ID
+                    ?? process.env.NEXT_PUBLIC_PAYPACK_CLIENT_ID
+                    ?? "";
+  const clientSecret = process.env.PAYPACK_CLIENT_SECRET
+                    ?? process.env.NEXT_PUBLIC_PAYPACK_CLIENT_SECRET
+                    ?? "";
 
   if (!clientId || !clientSecret) {
     throw new Error("PAYPACK_CLIENT_ID and PAYPACK_CLIENT_SECRET must be set.");
